@@ -1,35 +1,42 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import thucs from './assets/cs.jpg'
-import './App.css'
+import { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AppProvider } from './stores/appStore';
+import WelcomePage from './pages/WelcomePage'; // 全屏欢迎界面
+import PipelinePage from './features/pipeline/PipelinePage';
+import KgPreviewPage from './features/kg-preview/KgPreviewPage';
+import QaPage from './features/qa/QaPage';
+import Navbar from './components/Navbar';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isWelcomeVisible, setIsWelcomeVisible] = useState(true); // 控制欢迎界面显示
 
+  // 点击按钮后，隐藏欢迎界面，展示主界面
+  const handleEnterApp = () => {
+    setIsWelcomeVisible(false);
+  };
+
+  if (isWelcomeVisible) {
+    // 初始加载时只显示欢迎界面
+    return <WelcomePage onEnter={handleEnterApp} />;
+  }
+
+  // 点击按钮后，展示主应用
   return (
-    <>
-      <div>
-        <a href="https://www.cs.tsinghua.edu.cn/" target="_blank">
-          <img src={thucs} className="logo" alt="ThuCS logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Spark Learn</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the ThuCS and React logos to learn more
-      </p>
-    </>
-  )
+    <AppProvider>
+      <BrowserRouter>
+        <div className="h-screen flex flex-col">
+          <Navbar />
+          <main className="flex-1 p-4">
+            <Routes>
+              <Route path="/" element={<PipelinePage />} />
+              <Route path="/kg" element={<KgPreviewPage />} />
+              <Route path="/qa" element={<QaPage />} />
+            </Routes>
+          </main>
+        </div>
+      </BrowserRouter>
+    </AppProvider>
+  );
 }
 
-export default App
+export default App;

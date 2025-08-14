@@ -1,0 +1,21 @@
+.welcome-container {
+  background-color: #ffffff;
+  text-align: center;
+  padding: 2rem;
+}
+.logo {
+  width: 64px;
+  height: 64px;
+  transition: all 0.3s ease;
+}
+
+.logo.react {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  padding: 0.5rem;
+}
+
+.logo:hover {
+  box-shadow: 0 0 50px #4f46e5;
+  transform: scale(1.05); 
+}
