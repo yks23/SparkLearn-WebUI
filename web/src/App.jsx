@@ -28,7 +28,7 @@ function App() {
           <Navbar />
           <main className="flex-1 p-4">
             <Routes>
-              <Route path="/" element={<PipelinePage />} />
+              <Route path="/pipeline" element={<PipelinePage />} />
               <Route path="/kg" element={<KgPreviewPage />} />
               <Route path="/qa" element={<QaPage />} />
             </Routes>
