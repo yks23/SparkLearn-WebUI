@@ -1,5 +1,5 @@
 import './WelcomePage.css';            // 你可以把 App.css 中的样式搬到这里
-
+import { useState } from 'react';    
 export default function WelcomePage({ onEnter }) {
   // 添加模态框状态管理
   const [isModalOpen, setIsModalOpen] = useState(false);
