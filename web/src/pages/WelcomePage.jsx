@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
 import './WelcomePage.css';            // 你可以把 App.css 中的样式搬到这里
 
 export default function WelcomePage({ onEnter }) {

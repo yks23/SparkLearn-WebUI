@@ -6,13 +6,14 @@ import PipelinePage from './features/pipeline/PipelinePage';
 import KgPreviewPage from './features/kg-preview/KgPreviewPage';
 import QaPage from './features/qa/QaPage';
 import Navbar from './components/Navbar';
-
+import RootPage from './pages/Root'
 function App() {
   const [isWelcomeVisible, setIsWelcomeVisible] = useState(true); // 控制欢迎界面显示
 
   // 点击按钮后，隐藏欢迎界面，展示主界面
   const handleEnterApp = () => {
     setIsWelcomeVisible(false);
+    
   };
 
   if (isWelcomeVisible) {
@@ -20,7 +21,6 @@ function App() {
     return <WelcomePage onEnter={handleEnterApp} />;
   }
 
-  // 点击按钮后，展示主应用
   return (
     <AppProvider>
       <BrowserRouter>
@@ -28,6 +28,7 @@ function App() {
           <Navbar />
           <main className="flex-1 p-4">
             <Routes>
+              <Route path="/" element={<RootPage/>} />
               <Route path="/pipeline" element={<PipelinePage />} />
               <Route path="/kg" element={<KgPreviewPage />} />
               <Route path="/qa" element={<QaPage />} />
