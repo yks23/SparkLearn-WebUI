@@ -3,7 +3,7 @@ import thucs from '../assets/cs.jpg';
 
 export default function Root() {
   return (
-    <>
+    <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
       {/* 原有 Logo 区域 */}
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <a href="https://www.cs.tsinghua.edu.cn/" target="_blank" rel="noopener noreferrer">
@@ -22,6 +22,6 @@ export default function Root() {
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 32 }}>
         <span style={{ fontSize: 100, fontWeight: 'bold' }}>你好，还没想好放啥</span>
       </div>
-    </>
+    </div>
   );
 }

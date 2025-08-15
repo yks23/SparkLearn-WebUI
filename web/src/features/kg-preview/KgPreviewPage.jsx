@@ -123,11 +123,11 @@ export default function KgPreviewPage() {
   };
 
   return (
-    <div className="h-full flex flex-col p-4">
-      <h1 className="text-2xl font-bold mb-4">知识图谱预览</h1>
+    <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
+      <h1 className="text-2xl font-bold mb-6 text-indigo-700">知识图谱预览</h1>
       
-      <div className="mb-4 p-3 bg-gray-100 rounded-lg">
-        <h2 className="text-lg font-semibold mb-2">物理参数配置</h2>
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">物理参数配置</h2>
         <div className="flex flex-row justify-around flex-wrap gap-4">
           <div className="min-w-[120px]">
             <label className="block text-sm mb-1">链接长度: {physicsConfig.linkDistance}px</label>
@@ -213,7 +213,7 @@ export default function KgPreviewPage() {
         </div>
       </div>
       
-      <div ref={containerRef} className="flex-1 border rounded-lg overflow-hidden">
+      <div ref={containerRef} className="border rounded-lg overflow-hidden" style={{ height: '600px' }}>
         {dimensions.width > 0 && dimensions.height > 0 && (
           <ForceGraph2D
             ref={fgRef}
