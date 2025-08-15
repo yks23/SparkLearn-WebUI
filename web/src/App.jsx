@@ -7,6 +7,8 @@ import KgPreviewPage from './features/kg-preview/KgPreviewPage';
 import QaPage from './features/qa/QaPage';
 import Navbar from './components/Navbar';
 import RootPage from './pages/Root'
+import ApiConfigPage from './pages/ApiConfigPage';
+
 function App() {
   const [isWelcomeVisible, setIsWelcomeVisible] = useState(true); // 控制欢迎界面显示
 
@@ -32,6 +34,7 @@ function App() {
               <Route path="/pipeline" element={<PipelinePage />} />
               <Route path="/kg" element={<KgPreviewPage />} />
               <Route path="/qa" element={<QaPage />} />
+              <Route path="/api-config" element={<ApiConfigPage />} />
             </Routes>
           </main>
         </div>

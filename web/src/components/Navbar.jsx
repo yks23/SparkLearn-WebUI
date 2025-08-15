@@ -21,6 +21,9 @@ export default function Navbar() {
       <NavLink to="/qa" className={navClass}>
         题目
       </NavLink>
+      <NavLink to="/api-config" className={navClass}>
+        API配置
+      </NavLink>
     </nav>
   );
 }
