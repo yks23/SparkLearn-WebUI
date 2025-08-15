@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 
-export default function Navbar() {
+export default function Navbar({ setIsWelcomeVisible }) {
   const navClass = ({ isActive }) =>
     'px-3 py-2 rounded-md text-sm font-medium ' +
     (isActive
@@ -8,7 +8,15 @@ export default function Navbar() {
       : 'text-gray-300 hover:bg-indigo-500');
 
   return (
-    <nav className="bg-indigo-600 text-white flex items-center gap-4 px-4 h-14">
+    <nav
+      className="bg-indigo-600 text-white flex items-center gap-4 px-4"
+      style={{
+        height: '64px',
+        minHeight: '64px',
+        maxHeight: '64px',
+        overflow: 'hidden'
+      }}
+    >
       <NavLink to="/" onClick={() => setIsWelcomeVisible(true)} className="font-bold px-3 flex items-center">
         SparkLearn
       </NavLink>
