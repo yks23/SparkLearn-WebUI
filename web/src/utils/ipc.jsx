@@ -9,14 +9,6 @@ export const invoke = async (cmd, arg) => {
       return saveApiConfig(arg);
     case 'sendConfigToBackend':
       return sendConfigToBackend(arg);
-    case 'singleConversation':
-      return singleConversation(arg);
-    case 'multiConversation':
-      return multiConversation(arg);
-    case 'singleEmbedding':
-      return singleEmbedding(arg);
-    case 'multiEmbedding':
-      return multiEmbedding(arg);
     case 'processInput':
       return processInput(arg);
     case 'augmentFile':
@@ -144,90 +136,6 @@ const sendConfigToBackend = async (config) => {
     }
   } catch (error) {
     console.error('发送配置到后端失败:', error);
-    throw error;
-  }
-};
-
-// 单次对话
-const singleConversation = async (params) => {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/singleConversation`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
-    });
-    
-    if (response.ok) {
-      const result = await response.json();
-      return result;
-    } else {
-      throw new Error('对话请求失败');
-    }
-  } catch (error) {
-    console.error('单次对话失败:', error);
-    throw error;
-  }
-};
-
-// 多并行对话
-const multiConversation = async (params) => {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/multiConversation`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
-    });
-    
-    if (response.ok) {
-      const result = await response.json();
-      return result;
-    } else {
-      throw new Error('多对话请求失败');
-    }
-  } catch (error) {
-    console.error('多并行对话失败:', error);
-    throw error;
-  }
-};
-
-// 单次文本嵌入
-const singleEmbedding = async (params) => {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/singleEmbedding`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
-    });
-    
-    if (response.ok) {
-      const result = await response.json();
-      return result;
-    } else {
-      throw new Error('嵌入请求失败');
-    }
-  } catch (error) {
-    console.error('单次文本嵌入失败:', error);
-    throw error;
-  }
-};
-
-// 多文本嵌入
-const multiEmbedding = async (params) => {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/multiEmbedding`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
-    });
-    
-    if (response.ok) {
-      const result = await response.json();
-      return result;
-    } else {
-      throw new Error('多嵌入请求失败');
-    }
-  } catch (error) {
-    console.error('多文本嵌入失败:', error);
     throw error;
   }
 };

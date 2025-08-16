@@ -85,74 +85,6 @@ def send_config_to_backend():
     
     return jsonify({'success': True, 'message': '配置已更新'})
 
-@app.route('/api/singleConversation', methods=['POST'])
-def api_single_conversation():
-    """单次对话API"""
-    try:
-        data = request.json
-        system_prompt = data.get('system_prompt', '')
-        user_input = data.get('user_input', '')
-        need_json = data.get('need_json', False)
-        show_progress = data.get('show_progress', True)
-        
-        response = single_conversation(
-            system_prompt, 
-            user_input, 
-            need_json=need_json, 
-            show_progress=show_progress
-        )
-        
-        return jsonify({'success': True, 'response': response})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/multiConversation', methods=['POST'])
-def api_multi_conversation():
-    """多并行对话API"""
-    try:
-        data = request.json
-        system_prompts = data.get('system_prompts', [])
-        user_inputs = data.get('user_inputs', [])
-        need_json = data.get('need_json', [False] * len(system_prompts))
-        show_progress = data.get('show_progress', True)
-        
-        response = multi_conservation(
-            system_prompts,
-            user_inputs,
-            need_json=need_json,
-            show_progress=show_progress
-        )
-        
-        return jsonify({'success': True, 'response': response})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/singleEmbedding', methods=['POST'])
-def api_single_embedding():
-    """单次文本嵌入API"""
-    try:
-        data = request.json
-        text = data.get('text', '')
-        
-        embedding = single_embedding(text)
-        
-        return jsonify({'success': True, 'embedding': embedding})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route('/api/multiEmbedding', methods=['POST'])
-def api_multi_embedding():
-    """多文本嵌入API"""
-    try:
-        data = request.json
-        texts = data.get('texts', [])
-        
-        embeddings = multi_embedding(texts)
-        
-        return jsonify({'success': True, 'embeddings': embeddings})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
 @app.route('/api/processInput', methods=['POST'])
 def api_process_input():
     """处理输入文件"""
@@ -329,6 +261,19 @@ def api_run_pipeline():
                         processed_path = os.path.join(output_path, os.path.basename(input_path))
                     else:
                         processed_path = input_path
+                        # 额外检查：确保tree步骤的输入只包含.md文件
+                        if os.path.isdir(processed_path):
+                            has_md_files = False
+                            for root, dirs, files in os.walk(processed_path):
+                                for file in files:
+                                    if file.lower().endswith('.md'):
+                                        has_md_files = True
+                                        break
+                                if has_md_files:
+                                    break
+                            if not has_md_files:
+                                return jsonify({'success': False, 'error': 'tree步骤需要.md文件作为输入，请先运行预处理步骤'}), 400
+                    
                     tree_output = os.path.join(output_path, "tree")
                     # 确保tree_output目录存在
                     os.makedirs(tree_output, exist_ok=True)
@@ -463,7 +408,7 @@ def api_select_input():
             # 使用Finder来选择文件
             script = '''
             tell application "Finder"
-                set filePath to choose file with prompt "选择输入文件" of type {"md", "docx", "pdf", "ppt", "pptx", "txt"}
+                set filePath to choose file with prompt "选择输入文件" of type {"md", "docx", "pdf", "ppt", "pptx", "txt", "html", "htm", "png", "jpg", "jpeg", "gif", "bmp", "svg"}
                 return POSIX path of filePath
             end tell
             '''
@@ -513,11 +458,13 @@ def api_select_input():
                 title="选择输入文件",
                 initialdir=os.getcwd(),
                 filetypes=[
-                    ("所有支持的文件", "*.md;*.docx;*.pdf;*.ppt;*.pptx"),
+                    ("所有支持的文件", "*.md;*.docx;*.pdf;*.ppt;*.pptx;*.html;*.htm;*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.svg"),
                     ("Markdown文件", "*.md"),
                     ("Word文档", "*.docx"),
                     ("PDF文件", "*.pdf"),
                     ("PowerPoint文件", "*.ppt;*.pptx"),
+                    ("HTML文件", "*.html;*.htm"),
+                    ("图片文件", "*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.svg"),
                     ("所有文件", "*.*")
                 ]
             )
