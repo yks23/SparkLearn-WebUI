@@ -17,17 +17,8 @@ export default function Navbar({ setIsWelcomeVisible }) {
         overflow: 'hidden'
       }}
     >
-      <NavLink to="/" onClick={() => setIsWelcomeVisible(true)} className="font-bold px-3 flex items-center">
+      <NavLink to="/" className="font-bold px-3 flex items-center">
         SparkLearn
-      </NavLink>
-      <NavLink to="/pipeline" className={navClass}>
-        流程
-      </NavLink>
-      <NavLink to="/kg" className={navClass}>
-        图谱
-      </NavLink>
-      <NavLink to="/qa" className={navClass}>
-        题目
       </NavLink>
       <NavLink to="/api-config" className={navClass}>
         API配置
