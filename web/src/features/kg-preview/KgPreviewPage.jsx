@@ -1,34 +1,54 @@
-import { useMemo, useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useApp } from '../../stores/appStore';
+import { invoke } from '../../utils/ipc';
 
-export default function KgPreviewPage() {
+export default function KgQaPage() {
+  const { state: s, dispatch } = useApp();
   const containerRef = useRef(null);
   const fgRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const isInitialized = useRef(false);
   const [physicsConfig, setPhysicsConfig] = useState({
     linkDistance: 65,
-    chargeStrength: -30,
-    centerStrength: 0.1,
-    velocityDecay: 0.4,
-    alphaDecay: 0.01,
-    nodefontSize: 17, 
-    edgefontSize: 14,  
+    nodefontSize: 17,
+    edgefontSize: 14,
     lineWidth: 3,
-    nodeBaseSize: 2, 
+    nodeBaseSize: 2,
   });
-
-  const data = useMemo(() => ({
-    nodes: [
-      { id: '1', name: 'THUCS', val: 5},
-      { id: '2', name: '清华大学', val: 7 },
-      { id: '3', name: '海淀区', val: 10 },
-    ],
-    links: [
-      { source: '1', target: '2', label: '属于' },
-      { source: '2', target: '3', label: '位于' },
-    ],
-  }), []);
+  const [selectNeighborsMode, setSelectNeighborsMode] = useState(false);
+  const [removeNeighborsMode, setRemoveNeighborsMode] = useState(false);
+  const [selectedNodes, setSelectedNodes] = useState([]);
+  const [randomK, setRandomK] = useState(3); // 默认随机选择3个节点
+  
+  // 使用模拟数据作为默认值
+  const [graphData] = useState(() => {
+    const mockData = {
+      nodes: [
+        { id: '1', name: 'THUCS', val: 5 },
+        { id: '2', name: '清华大学', val: 7 },
+        { id: '3', name: '海淀区', val: 10 },
+        { id: '4', name: '计算机科学', val: 8 },
+        { id: '5', name: '人工智能', val: 9 },
+        { id: '6', name: '机器学习', val: 6 },
+      ],
+      links: [
+        { source: '1', target: '2', label: '属于' },
+        { source: '2', target: '3', label: '位于' },
+        { source: '1', target: '4', label: '学科' },
+        { source: '4', target: '5', label: '包含' },
+        { source: '5', target: '6', label: '包含' },
+        { source: '1', target: '5', label: '研究领域' },
+      ],
+    };
+    
+    // 设置知识点列表
+    const concepts = mockData.nodes.map(node => node.name);
+    dispatch({ type: 'setConcepts', payload: concepts });
+    
+    return mockData;
+  });
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -48,16 +68,12 @@ export default function KgPreviewPage() {
   useEffect(() => {
     if (!fgRef.current) return;
     fgRef.current.d3Force('link').distance(physicsConfig.linkDistance);
-    fgRef.current.d3Force('charge').strength(physicsConfig.chargeStrength);
-    fgRef.current.d3Force('center').strength(physicsConfig.centerStrength);
     fgRef.current.d3ReheatSimulation();
   }, [physicsConfig]);
 
   useEffect(() => {
     if (fgRef.current && !isInitialized.current) {
       fgRef.current.d3Force('link').distance(physicsConfig.linkDistance);
-      fgRef.current.d3Force('charge').strength(physicsConfig.chargeStrength);
-      fgRef.current.d3Force('center').strength(physicsConfig.centerStrength);
       fgRef.current.d3ReheatSimulation();
       isInitialized.current = true;
     }
@@ -87,11 +103,11 @@ export default function KgPreviewPage() {
     ctx.moveTo(startX, startY);
     ctx.lineTo(endX, endY);
     ctx.strokeStyle = '#999';
-    ctx.lineWidth = physicsConfig.lineWidth / globalScale; 
+    ctx.lineWidth = physicsConfig.lineWidth / globalScale;
     ctx.stroke();
 
-    const arrowLength = 4.1*physicsConfig.lineWidth / globalScale;
-    const arrowWidth = 2.5*physicsConfig.lineWidth / globalScale;
+    const arrowLength = 4.1 * physicsConfig.lineWidth / globalScale;
+    const arrowWidth = 2.5 * physicsConfig.lineWidth / globalScale;
     ctx.beginPath();
     ctx.moveTo(endX, endY);
     ctx.lineTo(
@@ -114,7 +130,7 @@ export default function KgPreviewPage() {
     const labelX = midX + offsetX;
     const labelY = midY + offsetY;
     const label = link.label;
-    const fontSize = physicsConfig.edgefontSize / globalScale; 
+    const fontSize = physicsConfig.edgefontSize / globalScale;
     ctx.font = `${fontSize}px 'Amiri', serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -122,11 +138,179 @@ export default function KgPreviewPage() {
     ctx.fillText(label, labelX, labelY);
   };
 
-  return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
-      <h1 className="text-2xl font-bold mb-6 text-indigo-700">知识图谱预览</h1>
+  const handleNodeClick = (node) => {
+    if (selectNeighborsMode) {
+      // 邻居选择模式 - 只添加不删除
+      const neighborIds = new Set();
       
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      // 添加当前节点
+      neighborIds.add(node.id);
+      
+      // 添加所有邻居节点
+      graphData.links.forEach(link => {
+        if (link.source.id === node.id) neighborIds.add(link.target.id);
+        if (link.target.id === node.id) neighborIds.add(link.source.id);
+      });
+      
+      // 创建新节点集合（使用Set确保唯一）
+      const newNodesSet = new Set([...selectedNodes.map(n => n.id), ...neighborIds]);
+      
+      // 转换为节点对象数组
+      const newSelectedNodes = graphData.nodes.filter(n => newNodesSet.has(n.id));
+      
+      setSelectedNodes(newSelectedNodes);
+    } else if (removeNeighborsMode) {
+      // 去除邻居模式 - 移除该节点及其所有邻居
+      const neighborIds = new Set();
+      
+      // 添加当前节点
+      neighborIds.add(node.id);
+      
+      // 添加所有邻居节点
+      graphData.links.forEach(link => {
+        if (link.source.id === node.id) neighborIds.add(link.target.id);
+        if (link.target.id === node.id) neighborIds.add(link.source.id);
+      });
+      
+      // 从已选节点中移除这些节点
+      setSelectedNodes(prev => 
+        prev.filter(n => !neighborIds.has(n.id)));
+    } else {
+      // 单个节点选择 - 正常切换
+      const index = selectedNodes.findIndex(n => n.id === node.id);
+      if (index !== -1) {
+        // 如果已选择则移除
+        const newSelectedNodes = [...selectedNodes];
+        newSelectedNodes.splice(index, 1);
+        setSelectedNodes(newSelectedNodes);
+      } else {
+        // 如果未选择则添加
+        setSelectedNodes([...selectedNodes, node]);
+      }
+    }
+  };
+
+  // 随机选择k个节点
+  const handleRandomSelect = () => {
+    if (graphData.nodes.length === 0) return;
+    
+    // 计算实际要选择的节点数（不能超过总节点数）
+    const k = Math.min(randomK, graphData.nodes.length);
+    
+    // 打乱节点数组
+    const shuffled = [...graphData.nodes].sort(() => 0.5 - Math.random());
+    
+    // 选择前k个节点
+    const randomNodes = shuffled.slice(0, k);
+    
+    setSelectedNodes(randomNodes);
+  };
+
+  const generate = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    
+    // 使用选中的知识点列表
+    const concepts = selectedNodes.map(node => node.name);
+    
+    await invoke('generateQA', {
+      graphPath: s.graphPath,
+      concepts: concepts,
+      difficulty: fd.get('difficulty'),
+      output: s.outputPath,
+    });
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
+      <h1 className="text-2xl font-bold mb-6 text-indigo-700">知识图谱与题目生成</h1>
+      
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-gray-800">知识图谱预览</h2>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className={`px-3 py-1 text-sm rounded-md ${
+              selectNeighborsMode
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-200 text-gray-700'
+            }`}
+            onClick={() => {
+              setSelectNeighborsMode(!selectNeighborsMode);
+              setRemoveNeighborsMode(false); // 关闭其他模式
+            }}
+          >
+            选择所有邻居
+            {selectNeighborsMode && <span className="ml-1">✓</span>}
+          </button>
+          <button
+            type="button"
+            className={`px-3 py-1 text-sm rounded-md ${
+              removeNeighborsMode
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-200 text-gray-700'
+            }`}
+            onClick={() => {
+              setRemoveNeighborsMode(!removeNeighborsMode);
+              setSelectNeighborsMode(false); // 关闭其他模式
+            }}
+          >
+            去除所有邻居
+            {removeNeighborsMode && <span className="ml-1">✓</span>}
+          </button>
+          <button
+            type="button"
+            className="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded-md"
+            onClick={() => setSelectedNodes([])}
+          >
+            清空选择
+          </button>
+          {/* 随机选择控件 */}
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min="1"
+              max={graphData.nodes.length}
+              value={randomK}
+              onChange={(e) => {
+                const value = parseInt(e.target.value);
+                if (!isNaN(value) && value > 0) {
+                  setRandomK(Math.min(value, graphData.nodes.length));
+                }
+              }}
+              className="w-12 px-1 py-1 border border-gray-300 rounded text-sm text-center"
+            />
+            <button
+              type="button"
+              className="px-2 py-1 bg-gray-200 text-gray-700 text-sm rounded-md"
+              onClick={handleRandomSelect}
+            >
+              随机选择
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div className="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+        <p className="text-sm text-gray-600">
+          {selectNeighborsMode
+            ? '点击节点将添加该节点及其所有邻居节点'
+            : removeNeighborsMode
+            ? '点击节点将移除该节点及其所有邻居节点'
+            : '点击节点将其添加到知识点列表或移除'}
+        </p>
+        <p className="text-sm mt-1">
+          已选知识点: 
+          <span className="font-medium ml-2">
+            {selectedNodes.length > 0 
+              ? selectedNodes.map(n => n.name).join(', ') 
+              : '无'}
+          </span>
+        </p>
+      </div>
+      
+      {/* 物理参数配置控制条 */}
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h2 className="text-lg font-semibold mb-4 text-gray-800">物理参数配置</h2>
         <div className="flex flex-row justify-around flex-wrap gap-4">
           <div className="min-w-[120px]">
@@ -136,36 +320,6 @@ export default function KgPreviewPage() {
               min="20" max="500" 
               value={physicsConfig.linkDistance}
               onChange={e => updatePhysicsParam('linkDistance', +e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="min-w-[120px]">
-            <label className="block text-sm mb-1">排斥力强度: {physicsConfig.chargeStrength}</label>
-            <input 
-              type="range" 
-              min="-100" max="0" 
-              value={physicsConfig.chargeStrength}
-              onChange={e => updatePhysicsParam('chargeStrength', +e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="min-w-[120px]">
-            <label className="block text-sm mb-1">中心力强度: {physicsConfig.centerStrength}</label>
-            <input 
-              type="range" 
-              min="0" max="1" step="0.01"
-              value={physicsConfig.centerStrength}
-              onChange={e => updatePhysicsParam('centerStrength', +e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="min-w-[120px]">
-            <label className="block text-sm mb-1">速度衰减: {physicsConfig.velocityDecay}</label>
-            <input 
-              type="range" 
-              min="0" max="0.9" step="0.01"
-              value={physicsConfig.velocityDecay}
-              onChange={e => updatePhysicsParam('velocityDecay', +e.target.value)}
               className="w-full"
             />
           </div>
@@ -199,7 +353,6 @@ export default function KgPreviewPage() {
               className="w-full"
             />
           </div>
-          {/* 新增：节点大小调节滑块 */}
           <div className="min-w-[120px]">
             <label className="block text-sm mb-1">节点大小: {physicsConfig.nodeBaseSize}</label>
             <input 
@@ -213,51 +366,115 @@ export default function KgPreviewPage() {
         </div>
       </div>
       
-      <div ref={containerRef} className="border rounded-lg overflow-hidden" style={{ height: '600px' }}>
+      <div ref={containerRef} className="border rounded-lg overflow-hidden mb-8" style={{ height: '500px' }}>
         {dimensions.width > 0 && dimensions.height > 0 && (
           <ForceGraph2D
             ref={fgRef}
-            graphData={data}
+            graphData={graphData}
             width={dimensions.width}
             height={dimensions.height}
             backgroundColor="#fafafa"
             nodeVal="val"
             nodeLabel={null}
-            linkLabel={null} 
-            d3VelocityDecay={physicsConfig.velocityDecay}
-            d3AlphaDecay={physicsConfig.alphaDecay}
+            linkLabel={null}
             cooldownTicks={Infinity}
             nodePointerAreaPaint={null}
-            onNodeHover={null}
-            onNodeClick={null}
+            onNodeClick={handleNodeClick}
             linkPointerAreaPaint={null}
-            onLinkHover={null}
-            onLinkClick={null}
             nodeCanvasObject={(node, ctx, globalScale) => {
-              //节点半径
+              const isSelected = selectedNodes.some(n => n.id === node.id);
               const radius = Math.sqrt(node.val) * physicsConfig.nodeBaseSize;
               
+              // 绘制节点
               ctx.beginPath();
               ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
-              ctx.fillStyle = '#69b3a2';
+              ctx.fillStyle = isSelected ? '#FF6B6B' : '#69b3a2';
               ctx.fill();
               
+              // 添加选中效果
+              if (isSelected) {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius + 3, 0, 2 * Math.PI, false);
+                ctx.strokeStyle = '#FF6B6B';
+                ctx.lineWidth = 2 / globalScale;
+                ctx.stroke();
+              }
+              
+              // 绘制节点标签
               const label = node.name;
               const fontSize = physicsConfig.nodefontSize / globalScale;
               ctx.font = `${fontSize}px 'Amiri', serif`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.fillStyle = '#000';
+              ctx.fillStyle = isSelected ? '#C53030' : '#000';
               ctx.fillText(
-                label, 
-                node.x, 
-                node.y + radius + fontSize + 1/globalScale
+                label,
+                node.x,
+                node.y + radius + fontSize + 1 / globalScale
               );
             }}
             linkCanvasObject={drawDirectedLink}
           />
         )}
       </div>
+      
+      {/* 题目生成表单 */}
+      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">题目生成</h2>
+        <p className="mb-4 text-gray-600">
+          使用选中的知识点生成题目
+        </p>
+        
+        <form onSubmit={generate} className="space-y-6">
+          <div className="bg-white p-4 rounded-lg border border-gray-300">
+            <h3 className="font-medium text-gray-700 mb-2">已选知识点</h3>
+            {selectedNodes.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {selectedNodes.map((node, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
+                  >
+                    {node.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm">请在图谱中选择知识点</p>
+            )}
+          </div>
+          
+          <Select name="difficulty" label="难度">
+            <option>简单</option>
+            <option>中等</option>
+            <option>困难</option>
+          </Select>
+          
+          <button
+            className={`btn w-full ${selectedNodes.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={selectedNodes.length === 0}
+          >
+            生成题目
+          </button>
+        </form>
+      </div>
     </div>
+  );
+}
+
+function Select({ name, label, children }) {
+  return (
+    <label className="block">
+      <span className="font-medium text-gray-700 mb-2 block">{label}</span>
+      <div className="relative">
+        <select
+          name={name}
+          className="w-full border border-gray-300 rounded-md p-3 appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          {children}
+        </select>
+        <ChevronDownIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500" />
+      </div>
+    </label>
   );
 }

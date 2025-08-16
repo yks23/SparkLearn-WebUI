@@ -2,9 +2,6 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './stores/appStore';
 import WelcomePage from './pages/WelcomePage'; // 全屏欢迎界面
-import PipelinePage from './features/pipeline/PipelinePage';
-import KgPreviewPage from './features/kg-preview/KgPreviewPage';
-import QaPage from './features/qa/QaPage';
 import Navbar from './components/Navbar';
 import RootPage from './pages/Root'
 import ApiConfigPage from './pages/ApiConfigPage';
@@ -28,12 +25,9 @@ function App() {
       <BrowserRouter>
         <div className="h-screen flex flex-col">
           <Navbar />
-          <main className="flex-1 p-4">
+          <main className="flex-1">
             <Routes>
               <Route path="/" element={<RootPage/>} />
-              <Route path="/pipeline" element={<PipelinePage />} />
-              <Route path="/kg" element={<KgPreviewPage />} />
-              <Route path="/qa" element={<QaPage />} />
               <Route path="/api-config" element={<ApiConfigPage />} />
             </Routes>
           </main>
