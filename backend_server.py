@@ -12,7 +12,6 @@ sys.path.insert(0, str(submodule_path))
 
 # 导入submodule中的功能
 from config import spark_api_key, silicon_api_key, openai_api_key, glm_api_key, APPID, APISecret, APIKEY
-from utils.api import single_conversation, multi_conservation, single_embedding, multi_embedding, multiroundConversation
 from qg.graph_class import KnowledgeGraph, KnowledgeQuestionGenerator
 from sider.annotator_simple import SimplifiedAnnotator
 from pre_process.text_recognize.processtext import process_input
@@ -277,6 +276,9 @@ def api_run_pipeline():
                     tree_output = os.path.join(output_path, "tree")
                     # 确保tree_output目录存在
                     os.makedirs(tree_output, exist_ok=True)
+                    
+                    # 更新环境变量，确保使用处理后的md文件路径
+                    os.environ['raw_path'] = processed_path
                     tree_folder(processed_path, tree_output)
                     
                     # 生成知识图谱可视化
