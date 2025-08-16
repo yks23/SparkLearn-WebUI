@@ -8,4 +8,10 @@
            bg-indigo-600 text-white rounded px-4 py-2
            hover:bg-indigo-700 disabled:bg-indigo-300;
   }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center
+           bg-gray-200 text-gray-700 rounded px-4 py-2
+           hover:bg-gray-300 disabled:bg-gray-100;
+  }
 }

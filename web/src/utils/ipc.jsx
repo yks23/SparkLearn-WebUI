@@ -1,5 +1,5 @@
 // 实现本地存储和API调用功能
-const BACKEND_URL = 'http://localhost:5001';
+const BACKEND_URL = 'http://localhost:5001'; // 修改这里为你的后端端口
 
 export const invoke = async (cmd, arg) => {
   switch (cmd) {
@@ -9,6 +9,34 @@ export const invoke = async (cmd, arg) => {
       return saveApiConfig(arg);
     case 'sendConfigToBackend':
       return sendConfigToBackend(arg);
+    case 'singleConversation':
+      return singleConversation(arg);
+    case 'multiConversation':
+      return multiConversation(arg);
+    case 'singleEmbedding':
+      return singleEmbedding(arg);
+    case 'multiEmbedding':
+      return multiEmbedding(arg);
+    case 'processInput':
+      return processInput(arg);
+    case 'augmentFile':
+      return augmentFile(arg);
+    case 'generateQA':
+      return generateQA(arg);
+    case 'buildKnowledgeGraph':
+      return buildKnowledgeGraph(arg);
+    case 'runPipeline':
+      return runPipeline(arg);
+    case 'loadState':
+      return loadState(arg);
+    case 'selectFolder':
+      return selectFolder(arg);
+    case 'selectInput':
+      return selectInput(arg);
+    case 'openFolder':
+      return openFolder(arg);
+    case 'listDirectory':
+      return listDirectory(arg);
     default:
       // 对于其他命令，尝试调用后端API
       return fetch(`${BACKEND_URL}/api/${cmd}`, {
@@ -116,6 +144,301 @@ const sendConfigToBackend = async (config) => {
     }
   } catch (error) {
     console.error('发送配置到后端失败:', error);
+    throw error;
+  }
+};
+
+// 单次对话
+const singleConversation = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/singleConversation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('对话请求失败');
+    }
+  } catch (error) {
+    console.error('单次对话失败:', error);
+    throw error;
+  }
+};
+
+// 多并行对话
+const multiConversation = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/multiConversation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('多对话请求失败');
+    }
+  } catch (error) {
+    console.error('多并行对话失败:', error);
+    throw error;
+  }
+};
+
+// 单次文本嵌入
+const singleEmbedding = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/singleEmbedding`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('嵌入请求失败');
+    }
+  } catch (error) {
+    console.error('单次文本嵌入失败:', error);
+    throw error;
+  }
+};
+
+// 多文本嵌入
+const multiEmbedding = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/multiEmbedding`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('多嵌入请求失败');
+    }
+  } catch (error) {
+    console.error('多文本嵌入失败:', error);
+    throw error;
+  }
+};
+
+// 处理输入文件
+const processInput = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/processInput`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('文件处理请求失败');
+    }
+  } catch (error) {
+    console.error('处理输入文件失败:', error);
+    throw error;
+  }
+};
+
+// 增强文件
+const augmentFile = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/augmentFile`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('文件增强请求失败');
+    }
+  } catch (error) {
+    console.error('增强文件失败:', error);
+    throw error;
+  }
+};
+
+// 生成问答对
+const generateQA = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/generateQA`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('问答生成请求失败');
+    }
+  } catch (error) {
+    console.error('生成问答对失败:', error);
+    throw error;
+  }
+};
+
+// 构建知识图谱
+const buildKnowledgeGraph = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/buildKnowledgeGraph`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('知识图谱构建请求失败');
+    }
+  } catch (error) {
+    console.error('构建知识图谱失败:', error);
+    throw error;
+  }
+};
+
+// 运行处理流程
+const runPipeline = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/runPipeline`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.error || '流程执行失败');
+    }
+  } catch (error) {
+    console.error('运行流程失败:', error);
+    throw error;
+  }
+};
+
+// 加载状态文件
+const loadState = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/loadState`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('状态加载失败');
+    }
+  } catch (error) {
+    console.error('加载状态失败:', error);
+    throw error;
+  }
+};
+
+// 选择文件夹
+const selectFolder = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/selectFolder`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result.path;
+    } else {
+      throw new Error('文件夹选择失败');
+    }
+  } catch (error) {
+    console.error('选择文件夹失败:', error);
+    throw error;
+  }
+};
+
+// 选择输入文件或文件夹
+const selectInput = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/selectInput`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result.path;
+    } else {
+      throw new Error('输入选择失败');
+    }
+  } catch (error) {
+    console.error('选择输入失败:', error);
+    throw error;
+  }
+};
+
+// 列出目录内容
+const listDirectory = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/listDirectory`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('目录列表获取失败');
+    }
+  } catch (error) {
+    console.error('列出目录失败:', error);
+    throw error;
+  }
+};
+
+// 打开文件夹
+const openFolder = async (params) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/openFolder`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result.success;
+    } else {
+      throw new Error('打开文件夹失败');
+    }
+  } catch (error) {
+    console.error('打开文件夹失败:', error);
     throw error;
   }
 };
