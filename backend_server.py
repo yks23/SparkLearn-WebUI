@@ -49,11 +49,15 @@ def save_api_config():
     for key, value in config.items():
         os.environ[key] = value
     
-    # 保存到.env文件
+    # 保存到.env文件 - 保存完整的配置
     env_path = Path(__file__).parent / '.env'
     with open(env_path, 'w', encoding='utf-8') as f:
-        for key, value in config.items():
-            f.write(f'{key}={value}\n')
+        for key, value in api_config.items():
+            if value:  # 只保存非空值
+                f.write(f'{key}={value}\n')
+    
+    print(f"✅ API配置已保存到: {env_path}")
+    print(f"📝 保存的配置: {api_config}")
     
     return jsonify({'success': True, 'message': '配置已保存'})
 
@@ -69,6 +73,15 @@ def send_config_to_backend():
     # 更新环境变量
     for key, value in config.items():
         os.environ[key] = value
+    
+    # 同时保存到.env文件
+    env_path = Path(__file__).parent / '.env'
+    with open(env_path, 'w', encoding='utf-8') as f:
+        for key, value in api_config.items():
+            if value:  # 只保存非空值
+                f.write(f'{key}={value}\n')
+    
+    print(f"✅ 配置已更新并保存到: {env_path}")
     
     return jsonify({'success': True, 'message': '配置已更新'})
 
@@ -289,9 +302,10 @@ def api_run_pipeline():
         # 执行选中的步骤
         for step in ['preprocess', 'augment', 'tree']:
             if step in selected_steps:
-                if state.get(step, False):
-                    print(f"⏭️ 跳过已完成的步骤: {step_names[step]}")
-                    continue
+                # 暂时注释掉状态检查，强制重新执行 —— 懒得找新文件了
+                # if state.get(step, False):
+                #     print(f"⏭️ 跳过已完成的步骤: {step_names[step]}")
+                #     continue
                 
                 print(f"⏳ 正在执行: {step_names[step]}...")
                 
@@ -316,6 +330,8 @@ def api_run_pipeline():
                     else:
                         processed_path = input_path
                     tree_output = os.path.join(output_path, "tree")
+                    # 确保tree_output目录存在
+                    os.makedirs(tree_output, exist_ok=True)
                     tree_folder(processed_path, tree_output)
                     
                     # 生成知识图谱可视化
@@ -327,10 +343,10 @@ def api_run_pipeline():
                         kg.visualize(graph_png)
                         print(f"知识图谱已构建并可视化在: {graph_png}")
                 
-                # 更新状态
-                state[step] = True
-                with open(state_path, 'w', encoding='utf-8') as f:
-                    json.dump(state, f, indent=2)
+                # 更新状态（注释掉，不再保存状态）
+                # state[step] = True
+                # with open(state_path, 'w', encoding='utf-8') as f:
+                #     json.dump(state, f, indent=2)
                 
                 print(f"✅ 完成: {step_names[step]}")
         

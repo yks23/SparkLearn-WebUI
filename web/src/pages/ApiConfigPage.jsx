@@ -123,7 +123,7 @@ export default function ApiConfigPage() {
     spark_api_key: 'https://xinghuo.xfyun.cn/',
     silicon_api_key: 'https://siliconflow.cn/',
     openai_api_key: 'https://platform.openai.com/account/api-keys',
-    glm_api_key: 'https://chatglm.cn/',
+    glm_api_key: 'https://open.bigmodel.cn',
     APPID: 'https://www.xfyun.cn/',
     APISecret: 'https://www.xfyun.cn/',
     APIKEY: 'https://www.xfyun.cn/',
