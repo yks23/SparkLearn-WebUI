@@ -244,11 +244,11 @@ def api_run_pipeline():
                     from main import process_folder
                     process_folder(input_path, output_path)
                 
-                elif step == 'augment':
+                elif step == 'augment': # 隐患：如果选择的输出文件夹不是空的，可能会出现问题
                     from main import augment_folder
                     # 如果跳过了预处理，直接使用输入路径
                     if 'preprocess' in selected_steps:
-                        processed_path = os.path.join(output_path, os.path.basename(input_path))
+                        processed_path = output_path
                     else:
                         processed_path = input_path
                     augment_folder(processed_path)
@@ -257,7 +257,7 @@ def api_run_pipeline():
                     from main import tree_folder
                     # 如果跳过了预处理，直接使用输入路径
                     if 'preprocess' in selected_steps:
-                        processed_path = os.path.join(output_path, os.path.basename(input_path))
+                        processed_path = output_path
                     else:
                         processed_path = input_path
                         # 额外检查：确保tree步骤的输入只包含.md文件
