@@ -7,6 +7,10 @@ export const invoke = async (cmd, arg) => {
       return getApiConfig();
     case 'saveApiConfig':
       return saveApiConfig(arg);
+    case 'getModelConfig':
+      return getModelConfig();
+    case 'saveModelConfig':
+      return saveModelConfig(arg);
     case 'sendConfigToBackend':
       return sendConfigToBackend(arg);
     case 'processInput':
@@ -46,11 +50,11 @@ const getApiConfig = async () => {
     const localConfig = localStorage.getItem('apiConfig');
     if (localConfig) {
       const config = JSON.parse(localConfig);
-      console.log('从localStorage获取配置:', config);
+      console.log('从localStorage获取API配置:', config);
       return config;
     }
   } catch (error) {
-    console.warn('从localStorage获取配置失败:', error);
+    console.warn('从localStorage获取API配置失败:', error);
   }
   
   // 如果localStorage没有配置，尝试从后端获取
@@ -64,11 +68,11 @@ const getApiConfig = async () => {
       const config = await response.json();
       // 保存到localStorage作为备份
       localStorage.setItem('apiConfig', JSON.stringify(config));
-      console.log('从后端获取配置并保存到localStorage:', config);
+      console.log('从后端获取API配置并保存到localStorage:', config);
       return config;
     }
   } catch (error) {
-    console.warn('从后端获取配置失败:', error);
+    console.warn('从后端获取API配置失败:', error);
   }
   
   // 返回默认配置
@@ -82,18 +86,60 @@ const getApiConfig = async () => {
     APIKEY: '',
   };
   
-  console.log('使用默认配置:', defaultConfig);
+  console.log('使用默认API配置:', defaultConfig);
+  return defaultConfig;
+};
+
+// 从localStorage或后端获取模型配置
+const getModelConfig = async () => {
+  // 首先从localStorage获取用户保存的配置
+  try {
+    const localConfig = localStorage.getItem('modelConfig');
+    if (localConfig) {
+      const config = JSON.parse(localConfig);
+      console.log('从localStorage获取模型配置:', config);
+      return config;
+    }
+  } catch (error) {
+    console.warn('从localStorage获取模型配置失败:', error);
+  }
+  
+  // 如果localStorage没有配置，尝试从后端获取
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/getModelConfig`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    if (response.ok) {
+      const config = await response.json();
+      // 保存到localStorage作为备份
+      localStorage.setItem('modelConfig', JSON.stringify(config));
+      console.log('从后端获取模型配置并保存到localStorage:', config);
+      return config;
+    }
+  } catch (error) {
+    console.warn('从后端获取模型配置失败:', error);
+  }
+  
+  // 返回默认配置
+  const defaultConfig = {
+    model_provider: 'silicon',
+    model_name: 'Pro/deepseek-ai/DeepSeek-V3',
+  };
+  
+  console.log('使用默认模型配置:', defaultConfig);
   return defaultConfig;
 };
 
 // 保存API配置到localStorage和后端
 const saveApiConfig = async (config) => {
   try {
-    console.log('开始保存配置:', config);
+    console.log('开始保存API配置:', config);
     
     // 首先保存到localStorage
     localStorage.setItem('apiConfig', JSON.stringify(config));
-    console.log('配置已保存到localStorage');
+    console.log('API配置已保存到localStorage');
     
     // 然后尝试保存到后端
     try {
@@ -104,17 +150,50 @@ const saveApiConfig = async (config) => {
       });
       
       if (response.ok) {
-        console.log('配置已保存到后端');
+        console.log('API配置已保存到后端');
       } else {
-        console.warn('保存到后端失败，但已保存到本地存储');
+        console.warn('保存API配置到后端失败，但已保存到本地存储');
       }
     } catch (error) {
-      console.warn('后端不可用，仅保存到本地存储:', error);
+      console.warn('后端不可用，仅保存API配置到本地存储:', error);
     }
     
     return true;
   } catch (error) {
     console.error('保存API配置失败:', error);
+    return false;
+  }
+};
+
+// 保存模型配置到localStorage和后端
+const saveModelConfig = async (config) => {
+  try {
+    console.log('开始保存模型配置:', config);
+    
+    // 首先保存到localStorage
+    localStorage.setItem('modelConfig', JSON.stringify(config));
+    console.log('模型配置已保存到localStorage');
+    
+    // 然后尝试保存到后端
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/saveModelConfig`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      
+      if (response.ok) {
+        console.log('模型配置已保存到后端');
+      } else {
+        console.warn('保存模型配置到后端失败，但已保存到本地存储');
+      }
+    } catch (error) {
+      console.warn('后端不可用，仅保存模型配置到本地存储:', error);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('保存模型配置失败:', error);
     return false;
   }
 };

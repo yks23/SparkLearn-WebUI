@@ -11,7 +11,7 @@ submodule_path = Path(__file__).parent / "submodule" / "SparkLearn"
 sys.path.insert(0, str(submodule_path))
 
 # 导入submodule中的功能
-from config import spark_api_key, silicon_api_key, openai_api_key, glm_api_key, APPID, APISecret, APIKEY
+from config import spark_api_key, silicon_api_key, openai_api_key, glm_api_key, APPID, APISecret, APIKEY, model_name, model_provider
 from qg.graph_class import KnowledgeGraph, KnowledgeQuestionGenerator
 from sider.annotator_simple import SimplifiedAnnotator
 from pre_process.text_recognize.processtext import process_input
@@ -28,6 +28,12 @@ api_config = {
     'APPID': APPID,
     'APISecret': APISecret,
     'APIKEY': APIKEY
+}
+
+# 全局变量存储模型配置
+model_config = {
+    'model_provider': model_provider,
+    'model_name': model_name
 }
 
 @app.route('/api/getApiConfig', methods=['POST'])
@@ -56,31 +62,114 @@ def save_api_config():
                 f.write(f'{key}={value}\n')
     
     print(f"✅ API配置已保存到: {env_path}")
-    print(f"📝 保存的配置: {api_config}")
+    print(f"📝 保存的API配置: {api_config}")
     
-    return jsonify({'success': True, 'message': '配置已保存'})
+    return jsonify({'success': True, 'message': 'API配置已保存'})
 
-@app.route('/api/sendConfigToBackend', methods=['POST'])
-def send_config_to_backend():
-    """发送配置到后端（重新加载配置）"""
-    global api_config
+@app.route('/api/getModelConfig', methods=['POST'])
+def get_model_config():
+    """获取模型配置"""
+    return jsonify(model_config)
+
+@app.route('/api/saveModelConfig', methods=['POST'])
+def save_model_config():
+    """保存模型配置"""
+    global model_config
     config = request.json
     
     # 更新全局配置
-    api_config.update(config)
+    model_config.update(config)
     
     # 更新环境变量
     for key, value in config.items():
         os.environ[key] = value
     
-    # 同时保存到.env文件
-    env_path = Path(__file__).parent / '.env'
-    with open(env_path, 'w', encoding='utf-8') as f:
-        for key, value in api_config.items():
-            if value:  # 只保存非空值
-                f.write(f'{key}={value}\n')
+    # 更新submodule中的config.py文件
+    update_submodule_config(config)
     
-    print(f"✅ 配置已更新并保存到: {env_path}")
+    print(f"✅ 模型配置已保存")
+    print(f"📝 保存的模型配置: {model_config}")
+    
+    return jsonify({'success': True, 'message': '模型配置已保存'})
+
+def update_submodule_config(config):
+    """更新submodule中的config.py文件"""
+    try:
+        config_file_path = submodule_path / 'config.py'
+        
+        # 读取当前配置文件
+        with open(config_file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # 更新model_name
+        if 'model_name' in config:
+            # 查找并替换model_name行
+            lines = content.split('\n')
+            for i, line in enumerate(lines):
+                if line.strip().startswith('model_name ='):
+                    lines[i] = f'model_name = "{config["model_name"]}"'
+                    break
+            content = '\n'.join(lines)
+        
+        # 更新model_provider
+        if 'model_provider' in config:
+            # 查找并替换model_provider行
+            lines = content.split('\n')
+            for i, line in enumerate(lines):
+                if line.strip().startswith('model_provider ='):
+                    lines[i] = f'model_provider = "{config["model_provider"]}"  # \'openai\', \'chatglm\', \'silicon\', \'spark\''
+                    break
+            content = '\n'.join(lines)
+        
+        # 写回文件
+        with open(config_file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        print(f"✅ submodule配置文件已更新: {config_file_path}")
+        
+    except Exception as e:
+        print(f"❌ 更新submodule配置文件失败: {e}")
+
+@app.route('/api/sendConfigToBackend', methods=['POST'])
+def send_config_to_backend():
+    """发送配置到后端（重新加载配置）"""
+    global api_config, model_config
+    config = request.json
+    
+    # 分离API配置和模型配置
+    api_keys = ['spark_api_key', 'silicon_api_key', 'openai_api_key', 'glm_api_key', 'APPID', 'APISecret', 'APIKEY']
+    model_keys = ['model_provider', 'model_name']
+    
+    api_updates = {k: v for k, v in config.items() if k in api_keys}
+    model_updates = {k: v for k, v in config.items() if k in model_keys}
+    
+    # 更新API配置
+    if api_updates:
+        api_config.update(api_updates)
+        # 更新环境变量
+        for key, value in api_updates.items():
+            os.environ[key] = value
+        
+        # 保存到.env文件
+        env_path = Path(__file__).parent / '.env'
+        with open(env_path, 'w', encoding='utf-8') as f:
+            for key, value in api_config.items():
+                if value:  # 只保存非空值
+                    f.write(f'{key}={value}\n')
+    
+    # 更新模型配置
+    if model_updates:
+        model_config.update(model_updates)
+        # 更新环境变量
+        for key, value in model_updates.items():
+            os.environ[key] = value
+        
+        # 更新submodule配置文件
+        update_submodule_config(model_updates)
+    
+    print(f"✅ 配置已更新并保存")
+    print(f"📝 API配置: {api_config}")
+    print(f"📝 模型配置: {model_config}")
     
     return jsonify({'success': True, 'message': '配置已更新'})
 
@@ -233,10 +322,10 @@ def api_run_pipeline():
         # 执行选中的步骤
         for step in ['preprocess', 'augment', 'tree']:
             if step in selected_steps:
-                # 暂时注释掉状态检查，强制重新执行 —— 懒得找新文件了
-                # if state.get(step, False):
-                #     print(f"⏭️ 跳过已完成的步骤: {step_names[step]}")
-                #     continue
+                # 检查状态，如果已完成则询问是否继续执行
+                if state.get(step, False):
+                    print(f"⚠️ 步骤 {step_names[step]} 已完成，继续执行将覆盖之前的结果")
+                    # 这里可以选择继续执行，因为用户已经明确选择了这个步骤
                 
                 print(f"⏳ 正在执行: {step_names[step]}...")
                 
@@ -290,10 +379,10 @@ def api_run_pipeline():
                         kg.visualize(graph_png)
                         print(f"知识图谱已构建并可视化在: {graph_png}")
                 
-                # 更新状态（注释掉，不再保存状态）
-                # state[step] = True
-                # with open(state_path, 'w', encoding='utf-8') as f:
-                #     json.dump(state, f, indent=2)
+                # 更新状态
+                state[step] = True
+                with open(state_path, 'w', encoding='utf-8') as f:
+                    json.dump(state, f, indent=2)
                 
                 print(f"✅ 完成: {step_names[step]}")
         

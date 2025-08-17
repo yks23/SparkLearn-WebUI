@@ -26,6 +26,38 @@ export default function PipelinePage() {
       if (path) {
         dispatch({ type: 'setOutput', payload: path });
         addLog('选择输出文件夹: ' + path);
+        
+        // 自动加载状态并设置步骤的默认选择
+        try {
+          const stateResult = await invoke('loadState', { output_path: path });
+          if (stateResult.success) {
+            const state = stateResult.state;
+            // 根据状态设置步骤的默认选择：已完成的步骤默认不选择
+            const newSteps = {
+              preprocess: !state.preprocess,
+              augment: !state.augment,
+              tree: !state.tree
+            };
+            setSteps(newSteps);
+            
+            // 显示状态信息
+            const completedSteps = Object.entries(state)
+              .filter(([_, completed]) => completed)
+              .map(([step, _]) => {
+                const stepNames = { preprocess: '预处理', augment: '增广', tree: '知识树' };
+                return stepNames[step];
+              });
+            
+            if (completedSteps.length > 0) {
+              addLog(`检测到已完成步骤: ${completedSteps.join(', ')}，已自动取消选择`, 'info');
+            } else {
+              addLog('未检测到已完成步骤，所有步骤默认选中', 'info');
+            }
+          }
+        } catch (stateError) {
+          console.warn('加载状态失败:', stateError);
+          addLog('状态加载失败，使用默认设置', 'warning');
+        }
       }
     } catch (error) {
       console.error('选择文件夹失败:', error);
@@ -96,6 +128,44 @@ export default function PipelinePage() {
     setLogs([]);
   };
 
+  const loadState = async () => {
+    if (!s.outputPath) {
+      addLog('请先选择输出文件夹', 'warning');
+      return;
+    }
+    
+    try {
+      const stateResult = await invoke('loadState', { output_path: s.outputPath });
+      if (stateResult.success) {
+        const state = stateResult.state;
+        // 根据状态设置步骤的默认选择：已完成的步骤默认不选择
+        const newSteps = {
+          preprocess: !state.preprocess,
+          augment: !state.augment,
+          tree: !state.tree
+        };
+        setSteps(newSteps);
+        
+        // 显示状态信息
+        const completedSteps = Object.entries(state)
+          .filter(([_, completed]) => completed)
+          .map(([step, _]) => {
+            const stepNames = { preprocess: '预处理', augment: '增广', tree: '知识树' };
+            return stepNames[step];
+          });
+        
+        if (completedSteps.length > 0) {
+          addLog(`重新加载状态 - 已完成步骤: ${completedSteps.join(', ')}，已自动取消选择`, 'info');
+        } else {
+          addLog('重新加载状态 - 未检测到已完成步骤，所有步骤默认选中', 'info');
+        }
+      }
+    } catch (error) {
+      console.error('加载状态失败:', error);
+      addLog('状态加载失败: ' + error.message, 'error');
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
       <h1 className="text-2xl font-bold mb-6 text-indigo-700">处理流程</h1>
@@ -120,13 +190,28 @@ export default function PipelinePage() {
         </PathCard>
 
         <PathCard title="步骤">
-          {Object.entries(steps).map(([k, v]) => (
-            <label key={k} className="flex items-center gap-2">
-              <input type="checkbox" checked={v}
-                onChange={e => setSteps({ ...steps, [k]: e.target.checked })} />
-              {k}
-            </label>
-          ))}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-gray-600">选择要执行的步骤（已完成的步骤默认不选择）</span>
+            {s.outputPath && (
+              <button onClick={loadState} className="text-sm text-indigo-600 hover:text-indigo-800">
+                重新加载状态
+              </button>
+            )}
+          </div>
+          {Object.entries(steps).map(([k, v]) => {
+            const stepNames = { preprocess: '预处理原始文件', augment: '增广文本', tree: '构建知识树结构' };
+            return (
+              <label key={k} className="flex items-center gap-3 p-2 rounded hover:bg-gray-100">
+                <input 
+                  type="checkbox" 
+                  checked={v}
+                  onChange={e => setSteps({ ...steps, [k]: e.target.checked })}
+                  className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                />
+                <span className="text-sm">{stepNames[k]}</span>
+              </label>
+            );
+          })}
         </PathCard>
 
         <button disabled={running} onClick={run}
@@ -170,7 +255,6 @@ export default function PipelinePage() {
     </div>
   );
 }
-
 function PathCard({ title, children }) {
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
