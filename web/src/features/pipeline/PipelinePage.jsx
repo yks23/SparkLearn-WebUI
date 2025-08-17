@@ -167,7 +167,7 @@ export default function PipelinePage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
+    <div className="max-w-2xl mx-auto p-8">
       <h1 className="text-2xl font-bold mb-6 text-indigo-700">处理流程</h1>
 
       <div className="space-y-6">
@@ -221,7 +221,7 @@ export default function PipelinePage() {
         </button>
 
         {/* 日志栏 */}
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="bg-gray-50/80 backdrop-blur-sm rounded-lg p-4 border border-gray-200/50">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-gray-800 flex items-center">
               <DocumentTextIcon className="w-4 h-4 mr-2" />
@@ -240,10 +240,10 @@ export default function PipelinePage() {
             ) : (
               logs.map((log, index) => (
                 <div key={index} className={`text-xs p-2 rounded ${
-                  log.type === 'error' ? 'bg-red-50 text-red-700' :
-                  log.type === 'warning' ? 'bg-yellow-50 text-yellow-700' :
-                  log.type === 'success' ? 'bg-green-50 text-green-700' :
-                  'bg-blue-50 text-blue-700'
+                  log.type === 'error' ? 'bg-red-50/80 text-red-700' :
+                  log.type === 'warning' ? 'bg-yellow-50/80 text-yellow-700' :
+                  log.type === 'success' ? 'bg-green-50/80 text-green-700' :
+                  'bg-blue-50/80 text-blue-700'
                 }`}>
                   <span className="font-mono text-gray-500">[{log.timestamp}]</span> {log.message}
                 </div>
@@ -257,7 +257,7 @@ export default function PipelinePage() {
 }
 function PathCard({ title, children }) {
   return (
-    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+    <div className="bg-gray-50/80 backdrop-blur-sm rounded-lg p-4 border border-gray-200/50">
       <h2 className="font-semibold mb-3 text-gray-800">{title}</h2>
       <div className="space-y-2">{children}</div>
     </div>

@@ -119,13 +119,9 @@ export default function Root() {
           <span className="text-4xl font-bold">SparkLearn 知识图谱工具</span>
         </div>
         <div className="space-y-8">
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <PipelinePage />
-          </div>
+          <PipelinePage />
           
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <KgPreviewPage />
-          </div>
+          <KgPreviewPage />
         </div>
       </div>
     </div>

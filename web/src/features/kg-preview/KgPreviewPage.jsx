@@ -222,7 +222,7 @@ export default function KgQaPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
+    <div className="max-w-4xl mx-auto p-8">
       <h1 className="text-2xl font-bold mb-6 text-indigo-700">知识图谱与题目生成</h1>
       
       <div className="mb-4 flex items-center justify-between">
@@ -291,7 +291,7 @@ export default function KgQaPage() {
         </div>
       </div>
       
-      <div className="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+      <div className="mb-4 p-3 bg-gray-50/80 backdrop-blur-sm rounded-md border border-gray-200/50">
         <p className="text-sm text-gray-600">
           {selectNeighborsMode
             ? '点击节点将添加该节点及其所有邻居节点'
@@ -310,7 +310,7 @@ export default function KgQaPage() {
       </div>
       
       {/* 物理参数配置控制条 */}
-      <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="mb-4 p-4 bg-gray-50/80 backdrop-blur-sm rounded-lg border border-gray-200/50">
         <h2 className="text-lg font-semibold mb-4 text-gray-800">物理参数配置</h2>
         <div className="flex flex-row justify-around flex-wrap gap-4">
           <div className="min-w-[120px]">
@@ -366,14 +366,14 @@ export default function KgQaPage() {
         </div>
       </div>
       
-      <div ref={containerRef} className="border rounded-lg overflow-hidden mb-8" style={{ height: '500px' }}>
+      <div ref={containerRef} className="border border-gray-200/50 rounded-lg overflow-hidden mb-8 bg-white/20 backdrop-blur-sm" style={{ height: '500px' }}>
         {dimensions.width > 0 && dimensions.height > 0 && (
           <ForceGraph2D
             ref={fgRef}
             graphData={graphData}
             width={dimensions.width}
             height={dimensions.height}
-            backgroundColor="#fafafa"
+            backgroundColor="transparent"
             nodeVal="val"
             nodeLabel={null}
             linkLabel={null}
@@ -419,14 +419,14 @@ export default function KgQaPage() {
       </div>
       
       {/* 题目生成表单 */}
-      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+      <div className="bg-gray-50/80 backdrop-blur-sm p-6 rounded-lg border border-gray-200/50">
         <h2 className="text-lg font-semibold mb-4 text-gray-800">题目生成</h2>
         <p className="mb-4 text-gray-600">
           使用选中的知识点生成题目
         </p>
         
         <form onSubmit={generate} className="space-y-6">
-          <div className="bg-white p-4 rounded-lg border border-gray-300">
+          <div className="bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-gray-300/50">
             <h3 className="font-medium text-gray-700 mb-2">已选知识点</h3>
             {selectedNodes.length > 0 ? (
               <div className="flex flex-wrap gap-2">
