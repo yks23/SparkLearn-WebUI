@@ -19,17 +19,17 @@ export default function PipelinePage() {
     return input;
   };
 
-  const pickFolder = async () => {
+  const createOutputFolder = async () => {
     try {
-      // 使用后端API选择文件夹
-      const path = await invoke('selectFolder');
-      if (path) {
-        dispatch({ type: 'setOutput', payload: path });
-        addLog('选择输出文件夹: ' + path);
+      // 使用后端API自动创建输出文件夹
+      const result = await invoke('createOutputFolder');
+      if (result.success) {
+        dispatch({ type: 'setOutput', payload: result.path });
+        addLog(`创建输出文件夹: ${result.folder_name} (${result.path})`);
         
         // 自动加载状态并设置步骤的默认选择
         try {
-          const stateResult = await invoke('loadState', { output_path: path });
+          const stateResult = await invoke('loadState', { output_path: result.path });
           if (stateResult.success) {
             const state = stateResult.state;
             // 根据状态设置步骤的默认选择：已完成的步骤默认不选择
@@ -60,10 +60,12 @@ export default function PipelinePage() {
         }
       }
     } catch (error) {
-      console.error('选择文件夹失败:', error);
-      addLog('选择文件夹失败: ' + error.message, 'error');
+      console.error('创建输出文件夹失败:', error);
+      addLog('创建输出文件夹失败: ' + error.message, 'error');
     }
   };
+
+
 
   const pickInput = async () => {
     try {
@@ -72,6 +74,9 @@ export default function PipelinePage() {
       if (path) {
         dispatch({ type: 'setInput', payload: path });
         addLog('选择输入: ' + path);
+        
+        // 自动创建输出文件夹
+        await createOutputFolder();
       }
     } catch (error) {
       console.error('选择输入失败:', error);
@@ -101,9 +106,14 @@ export default function PipelinePage() {
   };
 
   const run = async () => {
-    if (!s.inputPath || !s.outputPath) {
-      addLog('请先选择输入和输出路径', 'warning');
+    if (!s.inputPath) {
+      addLog('请先选择输入路径', 'warning');
       return;
+    }
+
+    // 如果没有输出路径，自动创建
+    if (!s.outputPath) {
+      await createOutputFolder();
     }
 
     setRunning(true);
@@ -175,18 +185,22 @@ export default function PipelinePage() {
           <button onClick={pickInput}
             className="btn"><FolderOpenIcon className="w-4 h-4 mr-2" />选择输入</button>
           <p className="text-sm text-slate-600 mt-1">{s.inputPath || '未选择'}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            如需选择文件，请直接点击；如需选择文件夹，请取消第一个选择框后选择。
+          </p>
         </PathCard>
 
         <PathCard title="输出">
           <div className="flex gap-2">
-            <button onClick={pickFolder}
-              className="btn"><FolderOpenIcon className="w-4 h-4 mr-2" />选择输出</button>
             {s.outputPath && (
               <button onClick={openOutputFolder}
-                className="btn-secondary"><FolderIcon className="w-4 h-4 mr-2" />打开</button>
+                className="btn-secondary"><FolderIcon className="w-4 h-4 mr-2" />查看文件夹</button>
             )}
           </div>
-          <p className="text-sm text-slate-600 mt-1">{s.outputPath || '未选择'}</p>
+          <p className="text-sm text-slate-600 mt-1">{s.outputPath || '未创建'}</p>
+          <p className="text-xs text-gray-500 mt-1">
+            选择输入路径或开始处理时会自动创建带时间戳的文件夹
+          </p>
         </PathCard>
 
         <PathCard title="步骤">
@@ -199,17 +213,31 @@ export default function PipelinePage() {
             )}
           </div>
           {Object.entries(steps).map(([k, v]) => {
-            const stepNames = { preprocess: '预处理原始文件', augment: '增广文本', tree: '构建知识树结构' };
+            const stepNames = { 
+              preprocess: '预处理原始文件', 
+              augment: '增广文本', 
+              tree: '构建知识树结构' 
+            };
+            const stepDescriptions = {
+              preprocess: '将各种格式的文档（PDF、Word、PPT等）转换为Markdown格式，提取文本内容',
+              augment: '使用AI模型对文本进行增广，生成更多相关内容和知识点',
+              tree: '基于增广后的文本构建知识图谱，生成可视化的知识树结构'
+            };
             return (
-              <label key={k} className="flex items-center gap-3 p-2 rounded hover:bg-gray-100">
-                <input 
-                  type="checkbox" 
-                  checked={v}
-                  onChange={e => setSteps({ ...steps, [k]: e.target.checked })}
-                  className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                />
-                <span className="text-sm">{stepNames[k]}</span>
-              </label>
+              <div key={k} className="p-3 rounded border border-gray-200 hover:bg-gray-50">
+                <label className="flex items-start gap-3">
+                  <input 
+                    type="checkbox" 
+                    checked={v}
+                    onChange={e => setSteps({ ...steps, [k]: e.target.checked })}
+                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 mt-0.5"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-800">{stepNames[k]}</div>
+                    <div className="text-xs text-gray-500 mt-1">{stepDescriptions[k]}</div>
+                  </div>
+                </label>
+              </div>
             );
           })}
         </PathCard>

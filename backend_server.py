@@ -294,9 +294,16 @@ def api_run_pipeline():
         
         # 定义步骤
         step_names = {
-            'preprocess': "🔧 预处理原始文件",
-            'augment': "🧠 增广文本", 
-            'tree': "🌳 构建知识树结构"
+            'preprocess': "预处理原始文件",
+            'augment': "增广文本", 
+            'tree': "构建知识树结构"
+        }
+        
+        # 步骤说明
+        step_descriptions = {
+            'preprocess': "将各种格式的文档（PDF、Word、PPT等）转换为Markdown格式，提取文本内容",
+            'augment': "使用AI模型对文本进行增广，生成更多相关内容和知识点",
+            'tree': "基于增广后的文本构建知识图谱，生成可视化的知识树结构"
         }
         
         # 检查输入文件类型（如果只选择后面的步骤）
@@ -421,6 +428,61 @@ def api_load_state():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/getStepsInfo', methods=['POST'])
+def api_get_steps_info():
+    """获取步骤信息"""
+    try:
+        step_names = {
+            'preprocess': "预处理原始文件",
+            'augment': "增广文本", 
+            'tree': "构建知识树结构"
+        }
+        
+        step_descriptions = {
+            'preprocess': "将各种格式的文档（PDF、Word、PPT等）转换为Markdown格式，提取文本内容",
+            'augment': "使用AI模型对文本进行增广，生成更多相关内容和知识点",
+            'tree': "基于增广后的文本构建知识图谱，生成可视化的知识树结构"
+        }
+        
+        return jsonify({
+            'success': True,
+            'step_names': step_names,
+            'step_descriptions': step_descriptions
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/createOutputFolder', methods=['POST'])
+def api_create_output_folder():
+    """自动创建输出文件夹"""
+    try:
+        from datetime import datetime
+        
+        # 获取项目根目录
+        project_root = Path(__file__).parent
+        outputs_dir = project_root / "outputs"
+        
+        # 确保outputs目录存在
+        outputs_dir.mkdir(exist_ok=True)
+        
+        # 创建带时间戳的文件夹名称
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        folder_name = f"笔记_{timestamp}"
+        output_path = outputs_dir / folder_name
+        
+        # 创建文件夹
+        output_path.mkdir(exist_ok=True)
+        
+        return jsonify({
+            'success': True, 
+            'path': str(output_path),
+            'folder_name': folder_name
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/selectFolder', methods=['POST'])
 def api_select_folder():
     """选择文件夹"""
@@ -517,7 +579,7 @@ def api_select_input():
             # 如果文件选择失败或超时，尝试选择文件夹
             script_folder = '''
             tell application "Finder"
-                set folderPath to choose folder with prompt "选择输入文件夹"
+                set folderPath to choose folder with prompt "选择输入文件夹（包含要处理的文档文件）"
                 return POSIX path of folderPath
             end tell
             '''
@@ -566,7 +628,7 @@ def api_select_input():
             
             # 如果没有选择文件，尝试选择文件夹
             folder_path = filedialog.askdirectory(
-                title="选择输入文件夹",
+                title="选择输入文件夹（包含要处理的文档文件）",
                 initialdir=os.getcwd()
             )
             

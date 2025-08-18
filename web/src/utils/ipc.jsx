@@ -25,8 +25,9 @@ export const invoke = async (cmd, arg) => {
       return runPipeline(arg);
     case 'loadState':
       return loadState(arg);
-    case 'selectFolder':
-      return selectFolder(arg);
+
+    case 'createOutputFolder':
+      return createOutputFolder(arg);
     case 'selectInput':
       return selectInput(arg);
     case 'openFolder':
@@ -346,10 +347,10 @@ const loadState = async (params) => {
   }
 };
 
-// 选择文件夹
-const selectFolder = async (params) => {
+// 创建输出文件夹
+const createOutputFolder = async (params) => {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/selectFolder`, {
+    const response = await fetch(`${BACKEND_URL}/api/createOutputFolder`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
@@ -357,15 +358,17 @@ const selectFolder = async (params) => {
     
     if (response.ok) {
       const result = await response.json();
-      return result.path;
+      return result;
     } else {
-      throw new Error('文件夹选择失败');
+      throw new Error('创建输出文件夹失败');
     }
   } catch (error) {
-    console.error('选择文件夹失败:', error);
+    console.error('创建输出文件夹失败:', error);
     throw error;
   }
 };
+
+
 
 // 选择输入文件或文件夹
 const selectInput = async (params) => {
