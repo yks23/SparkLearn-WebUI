@@ -376,7 +376,7 @@ const selectInput = async (params) => {
     const response = await fetch(`${BACKEND_URL}/api/selectInput`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
+      body: JSON.stringify(params || {}),
     });
     
     if (response.ok) {

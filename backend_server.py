@@ -487,9 +487,10 @@ def api_create_output_folder():
 def api_select_folder():
     """选择文件夹"""
     try:
-        # 确保请求有JSON数据
-        if not request.is_json:
-            return jsonify({'success': False, 'error': '请求必须是JSON格式'}), 400
+        # 对于该端点，允许无正文或非JSON正文
+        # 读取但不强制要求JSON
+        if request.is_json:
+            _ = request.get_json(silent=True)
         
         import platform
         system = platform.system()
@@ -526,6 +527,12 @@ def api_select_folder():
             # 创建隐藏的根窗口
             root = tk.Tk()
             root.withdraw()  # 隐藏主窗口
+            try:
+                # 置顶提升，避免对话框被遮挡
+                root.attributes('-topmost', True)
+                root.update()
+            except Exception:
+                pass
             
             # 打开文件夹选择对话框
             folder_path = filedialog.askdirectory(
@@ -547,9 +554,9 @@ def api_select_folder():
 def api_select_input():
     """选择输入文件或文件夹"""
     try:
-        # 确保请求有JSON数据
-        if not request.is_json:
-            return jsonify({'success': False, 'error': '请求必须是JSON格式'}), 400
+        # 对于该端点，允许无正文或非JSON正文
+        if request.is_json:
+            _ = request.get_json(silent=True)
         
         import platform
         system = platform.system()
@@ -604,6 +611,12 @@ def api_select_input():
             # 创建隐藏的根窗口
             root = tk.Tk()
             root.withdraw()  # 隐藏主窗口
+            try:
+                # 置顶提升，避免对话框被遮挡
+                root.attributes('-topmost', True)
+                root.update()
+            except Exception:
+                pass
             
             # 打开文件/文件夹选择对话框
             # 先尝试选择文件
@@ -611,13 +624,13 @@ def api_select_input():
                 title="选择输入文件",
                 initialdir=os.getcwd(),
                 filetypes=[
-                    ("所有支持的文件", "*.md;*.docx;*.pdf;*.ppt;*.pptx;*.html;*.htm;*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.svg"),
+                    ("所有支持的文件", ("*.md", "*.docx", "*.pdf", "*.ppt", "*.pptx", "*.html", "*.htm", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.svg")),
                     ("Markdown文件", "*.md"),
                     ("Word文档", "*.docx"),
                     ("PDF文件", "*.pdf"),
-                    ("PowerPoint文件", "*.ppt;*.pptx"),
-                    ("HTML文件", "*.html;*.htm"),
-                    ("图片文件", "*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.svg"),
+                    ("PowerPoint文件", ("*.ppt", "*.pptx")),
+                    ("HTML文件", ("*.html", "*.htm")),
+                    ("图片文件", ("*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.svg")),
                     ("所有文件", "*.*")
                 ]
             )

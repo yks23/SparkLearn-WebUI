@@ -1,8 +1,6 @@
-# Flask后端服务器依赖
 flask==3.0.0
 flask-cors==4.0.0
 
-# Submodule依赖
 opencv-python
 PyMuPDF
 requests
@@ -19,7 +17,6 @@ chardet
 matplotlib
 websocket-client
 
-# Additional dependencies for treekg
 faiss_cpu==1.11.0
 neo4j==5.23.0
 numpy==1.26.4
