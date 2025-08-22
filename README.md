@@ -30,7 +30,7 @@
 
 ```bash
 # 克隆主项目
-git clone https://github.com/your-username/SparkLearn-WebUI.git
+git clone https://github.com/yks23/SparkLearn-WebUI.git
 cd SparkLearn-WebUI
 
 # 初始化并更新submodule（重要！）
