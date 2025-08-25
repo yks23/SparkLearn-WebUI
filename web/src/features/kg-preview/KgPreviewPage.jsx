@@ -131,7 +131,8 @@ export default function KgQaPage() {
     const labelY = midY + offsetY;
     const label = link.label;
     const fontSize = physicsConfig.edgefontSize / globalScale;
-    ctx.font = `${fontSize}px 'Amiri', serif`;
+    // 使用支持中文的字体
+    ctx.font = `${fontSize}px 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'SimHei', 'Arial Unicode MS', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#333';
@@ -403,7 +404,8 @@ export default function KgQaPage() {
               // 绘制节点标签
               const label = node.name;
               const fontSize = physicsConfig.nodefontSize / globalScale;
-              ctx.font = `${fontSize}px 'Amiri', serif`;
+              // 使用支持中文的字体
+              ctx.font = `${fontSize}px 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'SimHei', 'Arial Unicode MS', sans-serif`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillStyle = isSelected ? '#C53030' : '#000';
