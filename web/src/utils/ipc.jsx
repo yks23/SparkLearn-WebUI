@@ -442,7 +442,7 @@ const getKnowledgeGraph = async (params) => {
       ? { output_path: params.replace(/\\/g, '/') }
       : { ...params, output_path: (params.output_path || '').replace(/\\/g, '/') };
 
-    console.log('发送给后端的路径：', payload.output_path);
+    // console.log('发送给后端的路径：', payload.output_path);
 
     const response = await fetch(`${BACKEND_URL}/api/getKnowledgeGraph`, {
       method: 'POST',

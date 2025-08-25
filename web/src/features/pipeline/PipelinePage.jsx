@@ -127,7 +127,7 @@ export default function PipelinePage() {
       });
       addLog('处理完成！', 'success');
       const path = require('path');
-      const graphPath = path.join(s.outputPath, 'tree');
+      const graphPath = path.join(s.outputPath, 'tree','graph');
       console.log('graphPath:', graphPath);
       dispatch({
         type: 'setGraph',

@@ -215,15 +215,22 @@ def api_generate_qa():
     """生成问答对"""
     try:
         data = request.json
-        input_path = data.get('input_path', '')
-        output_path = data.get('output_path', './outputs')
-        
+        graph_path = data.get('graphPath', '')
+        concepts = data.get('concepts', [])
+        difficulty = data.get('difficulty', '简单')
+        output= data.get('output', '')
+        if difficulty == '简单':
+            difficulty = 'easy'
+        elif difficulty == '中等':
+            difficulty = 'medium'
+        else:
+            difficulty = 'hard'
+        print("concepts:", concepts)
+        print("difficulty:", difficulty)
+        print("output:", output)
+
         kg = KnowledgeGraph()
-        kg.load_knowledge_graph(input_path)
-        
-        # 生成可视化
-        graph_path = os.path.join(input_path, 'graph.png')
-        kg.visualize(graph_path)
+        kg.load_knowledge_graph(graph_path)
         
         generator = KnowledgeQuestionGenerator(
             kg,
@@ -232,8 +239,8 @@ def api_generate_qa():
             api_secret=api_config['APISecret']
         )
         
-        result = generator.interactive_question_generation()
-        
+        result = generator.generate_for_concept_sequence(concept_sequence=concepts,level=difficulty,save_path=output)
+        # print('result',result)
         return jsonify({
             'success': True, 
             'message': '问答对生成完成',

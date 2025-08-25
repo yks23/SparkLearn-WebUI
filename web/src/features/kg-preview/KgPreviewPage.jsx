@@ -3,7 +3,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 import { ChevronDownIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useApp } from '../../stores/appStore';
 import { invoke } from '../../utils/ipc';
-
+import path from 'path-browserify';
 export default function KgQaPage() {
   const { state: s, dispatch } = useApp();
   const containerRef = useRef(null);
@@ -26,6 +26,8 @@ export default function KgQaPage() {
   const [error, setError] = useState(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
+  const [generating, setGenerating] = useState(false);
+  const [savedPath, setSavedPath] = useState('');
   const handleLinkHover = (link, prevLink) => {
     setHoveredLink(link);
   };
@@ -45,10 +47,11 @@ export default function KgQaPage() {
       if (result.success) {
         setGraphData(result.data);
         setHasLoaded(true);
-
+        const graphPath = path.join(s.outputPath, 'tree','graph');
+        console.log('graphPath:', graphPath);
         const concepts = result.data.nodes.map(node => node.name);
         dispatch({ type: 'setConcepts', payload: concepts });
-        
+        dispatch({ type: 'setGraph', payload: graphPath });
         // // 重置 Pipeline 完成状态
         // dispatch({ type: 'setPipelineCompleted', payload: false });
       } else {
@@ -227,18 +230,32 @@ export default function KgQaPage() {
 
   const generate = async (e) => {
     e.preventDefault();
-    const fd = new FormData(e.target);
-    
-    // 使用选中的知识点列表
-    const concepts = selectedNodes.map(node => node.name);
-    
-    await invoke('generateQA', {
-      graphPath: s.graphPath,
-      concepts: concepts,
-      difficulty: fd.get('difficulty'),
-      output: s.outputPath,
-    });
+    if (selectedNodes.length === 0) return;
+
+    setGenerating(true);
+    setSavedPath('');
+
+    try {
+      const concepts = selectedNodes.map(node => node.name);
+      const result = await invoke('generateQA', {
+        graphPath: s.graphPath,
+        concepts,
+        difficulty: new FormData(e.target).get('difficulty'),
+        output: s.outputPath,
+      });
+
+      if (result.success) {
+        setSavedPath(path.join(s.outputPath, 'QA'));
+      } else {
+        setError(result.error || '生成题目失败');
+      }
+    } catch (err) {
+      setError(err.message || '生成题目时发生错误');
+    } finally {
+      setGenerating(false);
+    }
   };
+
 
   return (
     <div className="max-w-4xl mx-auto p-8">
@@ -536,11 +553,18 @@ export default function KgQaPage() {
           </Select>
           
           <button
-            className={`btn w-full ${selectedNodes.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-            disabled={selectedNodes.length === 0}
+            type="submit"
+            className={`btn w-full ${selectedNodes.length === 0 || generating ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={selectedNodes.length === 0 || generating}
           >
-            生成题目
+            {generating ? '正在生成题目...' : '生成题目'}
           </button>
+
+          {savedPath && (
+            <div className="mt-4 p-3 bg-green-50 rounded-md text-green-700">
+              题目已保存到 <span className="font-semibold">{savedPath}</span>
+            </div>
+          )}
         </form>
       </div>
     </div>
