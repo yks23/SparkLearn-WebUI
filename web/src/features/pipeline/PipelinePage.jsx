@@ -345,6 +345,13 @@ export default function PipelinePage() {
         isRunning: false 
       }});
       addLog('处理完成！', 'success');
+      const path = require('path');
+      const graphPath = path.join(s.outputPath, 'tree');
+      console.log('graphPath:', graphPath);
+      dispatch({
+        type: 'setGraph',
+        payload: graphPath
+      });
     } catch (error) {
       console.error('处理失败:', error);
       
