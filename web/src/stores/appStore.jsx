@@ -7,7 +7,13 @@ const initial = {
   outputPath: '',
   state: {},          
   graphPath: '',
-  concepts: [],        
+  concepts: [],
+  progress: {
+    percentage: 0,
+    currentStep: '',
+    estimatedTime: '',
+    isRunning: false
+  }
 };
 
 function reducer(state, action) {
@@ -17,6 +23,7 @@ function reducer(state, action) {
     case 'loadState':  return { ...state, state: action.payload };
     case 'setGraph':   return { ...state, graphPath: action.payload };
     case 'setConcepts':return { ...state, concepts: action.payload };
+    case 'setProgress': return { ...state, progress: { ...state.progress, ...action.payload } };
     default:           return state;
   }
 }

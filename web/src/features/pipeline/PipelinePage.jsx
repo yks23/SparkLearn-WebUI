@@ -1,13 +1,174 @@
 import { useState } from 'react';
-import { FolderOpenIcon, PlayIcon, FolderIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { FolderOpenIcon, PlayIcon, FolderIcon, DocumentTextIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useApp } from '../../stores/appStore';
 import { invoke } from '../../utils/ipc';
+import ErrorNotification from '../../components/ErrorNotification';
+import SmartProgressBar from '../../components/SmartProgressBar';
+import ProgressStats from '../../components/ProgressStats';
 
 export default function PipelinePage() {
   const { state: s, dispatch } = useApp();
   const [steps, setSteps] = useState({ preprocess: true, augment: true, tree: true });
   const [running, setRunning] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [errorNotification, setErrorNotification] = useState(null);
+
+  // 获取文件大小（字节）
+  const getFileSize = (path) => {
+    try {
+      if (!path) return 0;
+      
+      // 在Electron环境中，我们可以使用Node.js的fs模块
+      if (window.electronAPI) {
+        return window.electronAPI.getFileSize(path);
+      }
+      
+      // 在Web环境中，我们可以尝试使用File API
+      // 这里返回一个基于文件名的估算值
+      const ext = path.split('.').pop()?.toLowerCase();
+      const sizeEstimates = {
+        'pdf': 2 * 1024 * 1024,    // 2MB
+        'docx': 1.5 * 1024 * 1024, // 1.5MB
+        'txt': 0.5 * 1024 * 1024,  // 0.5MB
+        'md': 0.3 * 1024 * 1024,   // 0.3MB
+        'html': 0.8 * 1024 * 1024, // 0.8MB
+        'json': 0.2 * 1024 * 1024  // 0.2MB
+      };
+      
+      return sizeEstimates[ext] || 1024 * 1024; // 默认1MB
+    } catch (e) {
+      console.warn('获取文件大小失败:', e);
+      return 1024 * 1024; // 默认1MB
+    }
+  };
+
+  // 获取文件类型
+  const getFileType = (path) => {
+    if (!path) return '';
+    const ext = path.split('.').pop()?.toLowerCase();
+    return ext || 'unknown';
+  };
+
+  // 错误处理映射
+  const errorSolutions = {
+    'auth_error': {
+      title: 'API认证失败',
+      description: '您的API密钥可能无效或已过期',
+      solutions: [
+        '前往"API配置"页面检查配置',
+        '确认API密钥是否正确输入',
+        '验证API密钥是否有效且未过期',
+        '如果问题持续，请联系API服务提供商'
+      ]
+    },
+    'quota_error': {
+      title: 'API配额已用完',
+      description: '您已达到API调用限制',
+      solutions: [
+        '等待一段时间后重试',
+        '检查API使用配额',
+        '考虑升级API计划',
+        '减少并发请求数量'
+      ]
+    },
+    'network_error': {
+      title: '网络连接错误',
+      description: '无法连接到API服务器',
+      solutions: [
+        '检查网络连接是否正常',
+        '确认防火墙设置',
+        '尝试使用VPN或代理',
+        '稍后重试'
+      ]
+    },
+    'file_error': {
+      title: '文件操作错误',
+      description: '文件路径或权限问题',
+      solutions: [
+        '检查文件路径是否正确',
+        '确认文件是否存在',
+        '检查文件访问权限',
+        '确保磁盘空间充足'
+      ]
+    },
+    'FileNotFoundError': {
+      title: '文件未找到',
+      description: '指定的文件或文件夹不存在',
+      solutions: [
+        '检查文件路径是否正确',
+        '确认文件是否已被移动或删除',
+        '重新选择输入文件'
+      ]
+    },
+    'PermissionError': {
+      title: '权限不足',
+      description: '没有足够的权限访问文件或文件夹',
+      solutions: [
+        '以管理员身份运行程序',
+        '检查文件夹权限设置',
+        '确保文件没有被其他程序占用'
+      ]
+    },
+    'TimeoutError': {
+      title: '处理超时',
+      description: '处理时间过长，可能由于文件过大或网络问题',
+      solutions: [
+        '尝试处理较小的文件',
+        '检查网络连接',
+        '稍后重试'
+      ]
+    },
+    'default': {
+      title: '未知错误',
+      description: '发生了未预期的错误',
+      solutions: [
+        '重启应用程序',
+        '检查系统资源是否充足',
+        '联系技术支持并提供错误日志'
+      ]
+    }
+  };
+
+  // 获取错误解决方案
+  const getErrorSolution = (errorMessage, errorType = null) => {
+    // 首先检查是否有特定的错误类型
+    if (errorType && errorSolutions[errorType]) {
+      return errorSolutions[errorType];
+    }
+    
+    // 然后检查错误消息中是否包含特定关键词
+    for (const [errorType, solution] of Object.entries(errorSolutions)) {
+      if (errorMessage.includes(errorType) || errorMessage.toLowerCase().includes(errorType.toLowerCase())) {
+        return solution;
+      }
+    }
+    return errorSolutions.default;
+  };
+
+  // 生成错误日志
+  const generateErrorLog = (error, errorDetails = null) => {
+    let solution;
+    
+    if (errorDetails && errorDetails.error_type) {
+      solution = getErrorSolution(error.message, errorDetails.error_type);
+    } else {
+      solution = getErrorSolution(error.message);
+    }
+    
+    const timestamp = new Date().toISOString();
+    const errorLog = {
+      timestamp,
+      error: error.message,
+      stack: error.stack,
+      solution: solution,
+      details: errorDetails
+    };
+    
+    // 这里可以添加发送错误日志到服务器的逻辑
+    console.log('错误日志:', errorLog);
+    
+    return solution;
+  };
 
   // 创建隐藏的文件输入元素
   const createFileInput = (multiple = false, accept = '') => {
@@ -99,9 +260,9 @@ export default function PipelinePage() {
     }
   };
 
-  const addLog = (message, type = 'info') => {
+  const addLog = (message, type = 'info', details = null) => {
     const timestamp = new Date().toLocaleTimeString();
-    const newLog = { timestamp, message, type };
+    const newLog = { timestamp, message, type, details };
     setLogs(prev => [...prev.slice(-9), newLog]); // 保持最近10条日志
   };
 
@@ -117,14 +278,72 @@ export default function PipelinePage() {
     }
 
     setRunning(true);
+    dispatch({ type: 'setProgress', payload: { 
+      percentage: 0, 
+      currentStep: '初始化...', 
+      estimatedTime: '计算中...',
+      isRunning: true 
+    }});
     addLog('开始处理...', 'info');
     
     try {
-      await invoke('runPipeline', {
+      // 智能进度更新 - 基于实际步骤
+      let startTime = Date.now();
+      const selectedSteps = Object.keys(steps).filter(k => steps[k]);
+      const totalSteps = selectedSteps.length;
+      let currentStepIndex = 0;
+      
+      const progressInterval = setInterval(() => {
+        const currentProgress = s.progress.percentage;
+        if (currentProgress < 90) {
+          // 基于时间的平滑进度增长
+          const timeElapsed = (Date.now() - startTime) / 1000; // 秒
+          const estimatedTotalTime = totalSteps * 120; // 每个步骤预估2分钟
+          const newProgress = Math.min(90, (timeElapsed / estimatedTotalTime) * 100);
+          
+          // 确保进度只增不减
+          const finalProgress = Math.max(currentProgress, newProgress);
+          
+          // 根据进度确定当前步骤
+          const stepProgress = finalProgress / totalSteps;
+          currentStepIndex = Math.min(Math.floor(stepProgress), totalSteps - 1);
+          
+          const stepNames = {
+            'preprocess': '🔧 预处理文件...',
+            'augment': '🧠 文本增广...', 
+            'tree': '🌳 构建知识树...'
+          };
+          
+          const currentStep = stepNames[selectedSteps[currentStepIndex]] || '处理中...';
+          
+          // 更合理的预计时间计算
+          const remainingTime = Math.max(1, Math.round((estimatedTotalTime - timeElapsed) / 60));
+          
+          dispatch({ type: 'setProgress', payload: { 
+            percentage: finalProgress, 
+            currentStep,
+            estimatedTime: `${remainingTime}分钟`
+          }});
+        }
+      }, 2000);
+
+      // 启动后端处理
+      const pipelinePromise = invoke('runPipeline', {
         input_path: s.inputPath,
         output_path: s.outputPath,
         steps: Object.keys(steps).filter(k => steps[k]),
       });
+      
+      // 等待处理完成
+      await pipelinePromise;
+      
+      clearInterval(progressInterval);
+      dispatch({ type: 'setProgress', payload: { 
+        percentage: 100, 
+        currentStep: '✅ 处理完成', 
+        estimatedTime: '',
+        isRunning: false 
+      }});
       addLog('处理完成！', 'success');
       const path = require('path');
       const graphPath = path.join(s.outputPath, 'tree','graph');
@@ -135,7 +354,39 @@ export default function PipelinePage() {
       });
     } catch (error) {
       console.error('处理失败:', error);
-      addLog('处理失败: ' + error.message, 'error');
+      
+      // 检查是否是后端返回的详细错误信息
+      let errorDetails = null;
+      let errorMessage = error.message;
+      
+      if (error.response && error.response.data) {
+        errorDetails = error.response.data;
+        errorMessage = errorDetails.error || error.message;
+      }
+      
+      const solution = generateErrorLog(error, errorDetails);
+      
+      // 显示错误通知
+      setErrorNotification({
+        title: solution.title,
+        description: errorDetails?.details || solution.description,
+        solutions: errorDetails?.solutions || solution.solutions,
+        originalError: errorMessage,
+        errorType: errorDetails?.error_type
+      });
+      
+      addLog(`处理失败: ${solution.title}`, 'error', {
+        description: errorDetails?.details || solution.description,
+        solutions: errorDetails?.solutions || solution.solutions,
+        originalError: errorMessage,
+        errorType: errorDetails?.error_type
+      });
+      dispatch({ type: 'setProgress', payload: { 
+        percentage: 0, 
+        currentStep: '处理失败', 
+        estimatedTime: '',
+        isRunning: false 
+      }});
     } finally {
       setRunning(false);
     }
@@ -183,8 +434,21 @@ export default function PipelinePage() {
     }
   };
 
+  const handleErrorAction = (action) => {
+    if (action === 'goToConfig') {
+      // 导航到API配置页面
+      window.location.href = '/api-config';
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-8">
+      {/* 错误通知 */}
+      <ErrorNotification 
+        error={errorNotification}
+        onClose={() => setErrorNotification(null)}
+        onAction={handleErrorAction}
+      />
       <h1 className="text-2xl font-bold mb-6 text-indigo-700">处理流程</h1>
 
       <div className="space-y-6">
@@ -255,6 +519,21 @@ export default function PipelinePage() {
           {running ? '处理中...' : '开始处理'}
         </button>
 
+        {/* 智能进度条 */}
+        {s.progress.isRunning && (
+          <SmartProgressBar
+            isRunning={s.progress.isRunning}
+            percentage={s.progress.percentage}
+            currentStep={s.progress.currentStep}
+            estimatedTime={s.progress.estimatedTime}
+            fileSize={s.inputPath ? getFileSize(s.inputPath) : 0}
+            fileType={s.inputPath ? getFileType(s.inputPath) : ''}
+          />
+        )}
+
+        {/* 进度统计 */}
+        <ProgressStats />
+
         {/* 日志栏 */}
         <div className="bg-gray-50/80 backdrop-blur-sm rounded-lg p-4 border border-gray-200/50">
           <div className="flex items-center justify-between mb-3">
@@ -281,6 +560,38 @@ export default function PipelinePage() {
                   'bg-blue-50/80 text-blue-700'
                 }`}>
                   <span className="font-mono text-gray-500">[{log.timestamp}]</span> {log.message}
+                  
+                  {/* 详细错误信息 */}
+                  {log.type === 'error' && log.details && (
+                    <div className="mt-2 p-2 bg-red-100/50 rounded border border-red-200">
+                      <div className="flex items-start gap-2 mb-2">
+                        <ExclamationTriangleIcon className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-red-800">{log.details.description}</p>
+                          <p className="text-xs text-red-600 mt-1">原始错误: {log.details.originalError}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-red-800 mb-1">解决方案:</p>
+                        <ul className="text-xs text-red-700 space-y-1">
+                          {log.details.solutions.map((solution, idx) => (
+                            <li key={idx} className="flex items-start gap-1">
+                              <span className="text-red-500">•</span>
+                              <span>{solution}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      <div className="mt-2 p-2 bg-red-50 rounded border border-red-200">
+                        <div className="flex items-center gap-2">
+                          <InformationCircleIcon className="w-4 h-4 text-red-600" />
+                          <span className="text-xs text-red-700">错误日志已自动记录，如需技术支持请提供此信息</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))
             )}

@@ -5,6 +5,12 @@ import sys
 import json
 from pathlib import Path
 import chardet
+import logging
+import traceback
+
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # 添加submodule路径到Python路径
 submodule_path = Path(__file__).parent / "submodule" / "SparkLearn"
@@ -35,6 +41,96 @@ model_config = {
     'model_provider': model_provider,
     'model_name': model_name
 }
+
+# 错误处理函数
+def handle_api_error(error, context=""):
+    """处理API相关错误，返回用户友好的错误信息"""
+    error_str = str(error)
+    
+    # 检查是否是认证错误
+    if "401" in error_str or "Invalid token" in error_str or "Unauthorized" in error_str:
+        return {
+            'success': False,
+            'error': 'API认证失败：请检查您的API密钥配置',
+            'error_type': 'auth_error',
+            'details': '您的API密钥可能无效或已过期，请前往"API配置"页面检查并更新配置',
+            'solutions': [
+                '检查API密钥是否正确输入',
+                '确认API密钥是否有效且未过期',
+                '验证API服务是否可用',
+                '如果问题持续，请联系API服务提供商'
+            ]
+        }
+    
+    # 检查是否是配额错误
+    elif "429" in error_str or "quota" in error_str.lower() or "rate limit" in error_str.lower():
+        return {
+            'success': False,
+            'error': 'API配额已用完：请稍后重试或升级您的API计划',
+            'error_type': 'quota_error',
+            'details': '您已达到API调用限制，请等待一段时间后重试',
+            'solutions': [
+                '等待一段时间后重试',
+                '检查API使用配额',
+                '考虑升级API计划',
+                '减少并发请求数量'
+            ]
+        }
+    
+    # 检查是否是网络错误
+    elif "connection" in error_str.lower() or "timeout" in error_str.lower():
+        return {
+            'success': False,
+            'error': '网络连接错误：请检查网络连接',
+            'error_type': 'network_error',
+            'details': '无法连接到API服务器，请检查网络连接',
+            'solutions': [
+                '检查网络连接是否正常',
+                '确认防火墙设置',
+                '尝试使用VPN或代理',
+                '稍后重试'
+            ]
+        }
+    
+    # 检查是否是文件错误
+    elif "file" in error_str.lower() or "path" in error_str.lower():
+        return {
+            'success': False,
+            'error': '文件操作错误：请检查文件路径和权限',
+            'error_type': 'file_error',
+            'details': error_str,
+            'solutions': [
+                '检查文件路径是否正确',
+                '确认文件是否存在',
+                '检查文件访问权限',
+                '确保磁盘空间充足'
+            ]
+        }
+    
+    # 默认错误处理
+    else:
+        return {
+            'success': False,
+            'error': f'处理失败：{error_str}',
+            'error_type': 'unknown_error',
+            'details': error_str,
+            'solutions': [
+                '重启应用程序',
+                '检查系统资源',
+                '查看详细错误日志',
+                '联系技术支持'
+            ]
+        }
+
+# 全局异常处理器
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """全局异常处理器"""
+    logger.error(f"未处理的异常: {str(e)}")
+    logger.error(traceback.format_exc())
+    
+    error_response = handle_api_error(e, "全局异常")
+    return jsonify(error_response), 500
 
 @app.route('/api/getApiConfig', methods=['POST'])
 def get_api_config():
@@ -248,7 +344,10 @@ def api_generate_qa():
             'result': result
         })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logger.error(f"生成问答对失败: {str(e)}")
+        logger.error(traceback.format_exc())
+        error_response = handle_api_error(e, "生成问答对")
+        return jsonify(error_response), 500
 
 @app.route('/api/buildKnowledgeGraph', methods=['POST'])
 def api_build_knowledge_graph():
@@ -268,7 +367,10 @@ def api_build_knowledge_graph():
         
         return jsonify({'success': True, 'message': '知识图谱构建完成'})
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        logger.error(f"构建知识图谱失败: {str(e)}")
+        logger.error(traceback.format_exc())
+        error_response = handle_api_error(e, "构建知识图谱")
+        return jsonify(error_response), 500
 
 @app.route('/api/runPipeline', methods=['POST'])
 def api_run_pipeline():
@@ -281,7 +383,9 @@ def api_run_pipeline():
         
         # 验证输入路径
         if not input_path or not os.path.exists(input_path):
-            return jsonify({'success': False, 'error': '输入路径不存在'}), 400
+            error_response = handle_api_error(Exception('输入路径不存在'), "验证输入路径")
+            error_response['error'] = '输入路径不存在'
+            return jsonify(error_response), 400
         
         # 创建输出目录
         os.makedirs(output_path, exist_ok=True)
@@ -318,7 +422,9 @@ def api_run_pipeline():
             # 检查输入是否为md文件
             if os.path.isfile(input_path):
                 if not input_path.lower().endswith('.md'):
-                    return jsonify({'success': False, 'error': '跳过预处理步骤时，输入必须是.md文件'}), 400
+                    error_response = handle_api_error(Exception('跳过预处理步骤时，输入必须是.md文件'), "验证文件类型")
+                    error_response['error'] = '跳过预处理步骤时，输入必须是.md文件'
+                    return jsonify(error_response), 400
             else:
                 # 检查目录中是否有md文件
                 has_md_files = False
@@ -331,7 +437,9 @@ def api_run_pipeline():
                         break
                 
                 if not has_md_files:
-                    return jsonify({'success': False, 'error': '跳过预处理步骤时，输入目录必须包含.md文件'}), 400
+                    error_response = handle_api_error(Exception('跳过预处理步骤时，输入目录必须包含.md文件'), "验证文件类型")
+                    error_response['error'] = '跳过预处理步骤时，输入目录必须包含.md文件'
+                    return jsonify(error_response), 400
         
         # 执行选中的步骤
         for step in ['preprocess', 'augment', 'tree']:
@@ -374,7 +482,9 @@ def api_run_pipeline():
                                 if has_md_files:
                                     break
                             if not has_md_files:
-                                return jsonify({'success': False, 'error': 'tree步骤需要.md文件作为输入，请先运行预处理步骤'}), 400
+                                error_response = handle_api_error(Exception('tree步骤需要.md文件作为输入，请先运行预处理步骤'), "验证文件类型")
+                                error_response['error'] = 'tree步骤需要.md文件作为输入，请先运行预处理步骤'
+                                return jsonify(error_response), 400
                     
                     tree_output = os.path.join(output_path, "tree")
                     # 确保tree_output目录存在
@@ -404,10 +514,10 @@ def api_run_pipeline():
         return jsonify({'success': True, 'message': '流程执行完成'})
         
     except Exception as e:
-        import traceback
-        error_msg = f"运行出错: {str(e)}\n{traceback.format_exc()}"
-        print(error_msg)
-        return jsonify({'success': False, 'error': error_msg}), 500
+        logger.error(f"运行流程失败: {str(e)}")
+        logger.error(traceback.format_exc())
+        error_response = handle_api_error(e, "运行流程")
+        return jsonify(error_response), 500
 
 @app.route('/api/loadState', methods=['POST'])
 def api_load_state():
