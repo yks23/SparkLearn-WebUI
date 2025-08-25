@@ -55,24 +55,31 @@ def start_backend():
         print("❌ 后端服务器启动失败")
         return None
 
+import platform
+
 def start_frontend():
-    """启动前端开发服务器"""
+    """启动前端开发服务器（跨平台）"""
     print("🎨 启动前端开发服务器...")
-    
+
     web_dir = Path(__file__).parent / "web"
-    
-    # 检查前端依赖
+
+    system = platform.system()          # 'Windows' | 'Linux' | 'Darwin'(macOS)
+    if system == "Windows":
+        npm_bin = "npm.cmd"
+    else:
+        npm_bin = "npm"
+
     if not (web_dir / "node_modules").exists():
         print("📦 安装前端依赖...")
-        subprocess.run(["npm", "install"], cwd=web_dir, check=True)
-    
-    frontend_process = subprocess.Popen([
-        "npm", "run", "dev"
-    ], cwd=web_dir)
-    
-    # 等待前端启动
+        subprocess.run([npm_bin, "install"], cwd=web_dir, check=True)
+
+    frontend_process = subprocess.Popen(
+        [npm_bin, "run", "dev"],
+        cwd=web_dir
+    )
+
     time.sleep(5)
-    
+
     if frontend_process.poll() is None:
         print("✅ 前端服务器已启动 (http://localhost:3000)")
         return frontend_process
