@@ -5,7 +5,7 @@ import { invoke } from '../../utils/ipc';
 import ErrorNotification from '../../components/ErrorNotification';
 import SmartProgressBar from '../../components/SmartProgressBar';
 import ProgressStats from '../../components/ProgressStats';
-
+import path from 'path-browserify';
 export default function PipelinePage() {
   const { state: s, dispatch } = useApp();
   const [steps, setSteps] = useState({ preprocess: true, augment: true, tree: true });
@@ -345,7 +345,6 @@ export default function PipelinePage() {
         isRunning: false 
       }});
       addLog('处理完成！', 'success');
-      const path = require('path');
       const graphPath = path.join(s.outputPath, 'tree','graph');
       console.log('graphPath:', graphPath);
       dispatch({
