@@ -316,12 +316,15 @@ const runPipeline = async (params) => {
       body: JSON.stringify(params),
     });
     
+    const result = await response.json();
+    
     if (response.ok) {
-      const result = await response.json();
       return result;
     } else {
-      const errorData = await response.json();
-      throw new Error(errorData.error || '流程执行失败');
+      // 创建错误对象，包含后端返回的详细错误信息
+      const error = new Error(result.error || '流程执行失败');
+      error.response = { data: result };
+      throw error;
     }
   } catch (error) {
     console.error('运行流程失败:', error);
