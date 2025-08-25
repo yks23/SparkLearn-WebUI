@@ -1,0 +1,213 @@
+2025-08-18 23:10:27,490 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://183.172.212.173:5001
+2025-08-18 23:10:27,490 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-18 23:10:27,507 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-18 23:10:32,562 - WARNING -  * Debugger is active!
+2025-08-18 23:10:32,572 - INFO -  * Debugger PIN: 100-810-759
+2025-08-18 23:10:43,634 - INFO - 127.0.0.1 - - [18/Aug/2025 23:10:43] "OPTIONS /api/selectInput HTTP/1.1" 200 -
+2025-08-18 23:10:47,914 - INFO - 127.0.0.1 - - [18/Aug/2025 23:10:47] "[35m[1mPOST /api/selectInput HTTP/1.1[0m" 500 -
+2025-08-18 23:10:49,471 - INFO - 127.0.0.1 - - [18/Aug/2025 23:10:49] "[35m[1mPOST /api/selectInput HTTP/1.1[0m" 500 -
+2025-08-18 23:10:49,687 - INFO - 127.0.0.1 - - [18/Aug/2025 23:10:49] "[35m[1mPOST /api/selectInput HTTP/1.1[0m" 500 -
+2025-08-18 23:10:49,902 - INFO - 127.0.0.1 - - [18/Aug/2025 23:10:49] "[35m[1mPOST /api/selectInput HTTP/1.1[0m" 500 -
+2025-08-18 23:11:11,496 - INFO - 127.0.0.1 - - [18/Aug/2025 23:11:11] "OPTIONS /api/selectInput HTTP/1.1" 200 -
+2025-08-18 23:11:13,024 - INFO - 127.0.0.1 - - [18/Aug/2025 23:11:13] "[35m[1mPOST /api/selectInput HTTP/1.1[0m" 500 -
+2025-08-18 23:11:23,038 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://183.172.212.173:5001
+2025-08-18 23:11:23,038 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-18 23:11:23,052 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-18 23:11:27,274 - WARNING -  * Debugger is active!
+2025-08-18 23:11:27,287 - INFO -  * Debugger PIN: 100-810-759
+2025-08-18 23:11:33,914 - INFO - 127.0.0.1 - - [18/Aug/2025 23:11:33] "OPTIONS /api/selectInput HTTP/1.1" 200 -
+2025-08-18 23:11:55,243 - INFO - 127.0.0.1 - - [18/Aug/2025 23:11:55] "OPTIONS /api/selectInput HTTP/1.1" 200 -
+2025-08-18 23:11:56,741 - INFO - 127.0.0.1 - - [18/Aug/2025 23:11:56] "[35m[1mPOST /api/selectInput HTTP/1.1[0m" 500 -
+2025-08-18 23:17:55,573 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Lib\\site-packages\\flask\\globals.py', reloading
+2025-08-18 23:17:57,145 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-18 23:18:02,168 - WARNING -  * Debugger is active!
+2025-08-18 23:18:02,177 - INFO -  * Debugger PIN: 100-810-759
+2025-08-18 23:18:05,796 - INFO - 127.0.0.1 - - [18/Aug/2025 23:18:05] "OPTIONS /api/selectInput HTTP/1.1" 200 -
+2025-08-18 23:18:33,101 - INFO -  * Detected change in 'C:\\CODE\\SparkLearn-WebUI\\backend_server.py', reloading
+2025-08-18 23:18:33,117 - INFO -  * Detected change in 'C:\\CODE\\SparkLearn-WebUI\\backend_server.py', reloading
+2025-08-18 23:18:34,709 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-18 23:18:43,833 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://183.172.212.173:5001
+2025-08-18 23:18:43,834 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-18 23:18:43,847 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-18 23:18:48,354 - WARNING -  * Debugger is active!
+2025-08-18 23:18:48,367 - INFO -  * Debugger PIN: 100-810-759
+2025-08-18 23:18:53,479 - INFO - 127.0.0.1 - - [18/Aug/2025 23:18:53] "OPTIONS /api/selectInput HTTP/1.1" 200 -
+2025-08-18 23:19:11,081 - INFO - 127.0.0.1 - - [18/Aug/2025 23:19:11] "OPTIONS /api/selectInput HTTP/1.1" 200 -
+2025-08-18 23:19:12,574 - INFO - 127.0.0.1 - - [18/Aug/2025 23:19:12] "[35m[1mPOST /api/selectInput HTTP/1.1[0m" 500 -
+2025-08-18 23:19:15,823 - INFO - 127.0.0.1 - - [18/Aug/2025 23:19:15] "[35m[1mPOST /api/selectInput HTTP/1.1[0m" 500 -
+2025-08-18 23:22:35,536 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://183.172.212.173:5001
+2025-08-18 23:22:35,536 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-18 23:22:35,552 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-18 23:22:40,446 - WARNING -  * Debugger is active!
+2025-08-18 23:22:40,456 - INFO -  * Debugger PIN: 100-810-759
+2025-08-18 23:22:43,358 - INFO - 127.0.0.1 - - [18/Aug/2025 23:22:43] "OPTIONS /api/selectInput HTTP/1.1" 200 -
+2025-08-18 23:22:49,027 - INFO - 127.0.0.1 - - [18/Aug/2025 23:22:49] "OPTIONS /api/selectInput HTTP/1.1" 200 -
+2025-08-18 23:22:50,564 - INFO - 127.0.0.1 - - [18/Aug/2025 23:22:50] "[35m[1mPOST /api/selectInput HTTP/1.1[0m" 500 -
+2025-08-18 23:24:42,948 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-18 23:24:44,955 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-18 23:24:50,253 - WARNING -  * Debugger is active!
+2025-08-18 23:24:50,267 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 00:25:03,665 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 00:25:05,308 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 00:25:11,590 - WARNING -  * Debugger is active!
+2025-08-19 00:25:11,599 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 01:25:04,581 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 01:25:06,769 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 01:25:13,303 - WARNING -  * Debugger is active!
+2025-08-19 01:25:13,313 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 02:25:27,620 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 02:25:29,828 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 02:25:35,247 - WARNING -  * Debugger is active!
+2025-08-19 02:25:35,256 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 10:55:40,217 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 10:55:42,378 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 10:55:49,001 - WARNING -  * Debugger is active!
+2025-08-19 10:55:49,013 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 11:55:56,103 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 11:55:58,621 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 11:56:05,700 - WARNING -  * Debugger is active!
+2025-08-19 11:56:05,715 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 13:38:14,178 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 13:38:16,352 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 13:38:21,458 - WARNING -  * Debugger is active!
+2025-08-19 13:38:21,470 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 14:29:08,518 - INFO - 198.235.24.90 - - [19/Aug/2025 14:29:08] "[33mGET / HTTP/1.1[0m" 404 -
+2025-08-19 14:38:35,784 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 14:38:37,905 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 14:38:44,782 - WARNING -  * Debugger is active!
+2025-08-19 14:38:44,794 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 16:58:11,676 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 16:58:13,677 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 16:58:20,500 - WARNING -  * Debugger is active!
+2025-08-19 16:58:20,513 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 17:58:32,903 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 17:58:33,804 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 17:58:38,385 - WARNING -  * Debugger is active!
+2025-08-19 17:58:38,393 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 19:21:21,507 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 19:21:23,212 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 19:21:28,241 - WARNING -  * Debugger is active!
+2025-08-19 19:21:28,255 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 20:21:43,453 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 20:21:45,395 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 20:21:49,684 - WARNING -  * Debugger is active!
+2025-08-19 20:21:49,691 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 21:21:44,783 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 21:21:46,847 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 21:21:53,599 - WARNING -  * Debugger is active!
+2025-08-19 21:21:53,608 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 22:23:56,445 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 22:23:58,876 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 22:24:05,356 - WARNING -  * Debugger is active!
+2025-08-19 22:24:05,368 - INFO -  * Debugger PIN: 100-810-759
+2025-08-19 23:24:14,199 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-19 23:24:16,079 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-19 23:24:21,348 - WARNING -  * Debugger is active!
+2025-08-19 23:24:21,370 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 00:24:14,877 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 00:24:16,974 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 00:24:23,189 - WARNING -  * Debugger is active!
+2025-08-20 00:24:23,201 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 04:42:07,645 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 04:42:09,871 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 04:42:15,817 - WARNING -  * Debugger is active!
+2025-08-20 04:42:15,829 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 07:54:06,768 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 07:54:09,287 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 07:54:15,345 - WARNING -  * Debugger is active!
+2025-08-20 07:54:15,360 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 10:14:53,301 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 10:14:55,737 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 10:15:02,162 - WARNING -  * Debugger is active!
+2025-08-20 10:15:02,172 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 11:15:12,931 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 11:15:14,775 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 11:15:21,331 - WARNING -  * Debugger is active!
+2025-08-20 11:15:21,342 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 11:19:19,870 - INFO - 198.235.24.120 - - [20/Aug/2025 11:19:19] "[33mGET / HTTP/1.1[0m" 404 -
+2025-08-20 14:12:14,856 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 14:12:16,722 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 14:12:22,270 - WARNING -  * Debugger is active!
+2025-08-20 14:12:22,283 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 15:12:29,816 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 15:12:32,012 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 15:12:36,366 - WARNING -  * Debugger is active!
+2025-08-20 15:12:36,376 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 16:12:48,798 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 16:12:50,466 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 16:12:55,321 - WARNING -  * Debugger is active!
+2025-08-20 16:12:55,338 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 17:13:15,262 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 17:13:17,154 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 17:13:22,682 - WARNING -  * Debugger is active!
+2025-08-20 17:13:22,692 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 17:48:10,854 - INFO -  * Detected change in 'C:\\CODE\\SparkLearn-WebUI\\backend_server.py', reloading
+2025-08-20 17:48:13,892 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 17:48:19,291 - WARNING -  * Debugger is active!
+2025-08-20 17:48:19,300 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 18:47:06,983 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 18:47:09,110 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 18:47:15,857 - WARNING -  * Debugger is active!
+2025-08-20 18:47:15,875 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 19:46:45,365 - INFO - 3.134.148.59 - - [20/Aug/2025 19:46:45] "[33mGET / HTTP/1.1[0m" 404 -
+2025-08-20 19:47:31,169 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 19:47:33,211 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 19:47:37,599 - WARNING -  * Debugger is active!
+2025-08-20 19:47:37,606 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 19:48:25,290 - INFO - 3.134.148.59 - - [20/Aug/2025 19:48:25] "[33mGET / HTTP/1.1[0m" 404 -
+2025-08-20 19:49:48,775 - ERROR - 3.134.148.59 - - [20/Aug/2025 19:49:48] code 400, message Bad request version ('\xc0\x14\xc0')
+2025-08-20 19:49:48,777 - INFO - 3.134.148.59 - - [20/Aug/2025 19:49:48] "[31m[1m\x16\x03\x01\x00{\x01\x00\x00w\x03\x03("\xa0\xd1#\x96n\xb4\xad\x94\x85U\xef\xee"\x96+\x0d\xf6,Z"m\xad\x10,\x90\x94-=\x05\x05\x00\x00\x1a\xc0/\xc0+\xc0\x11\xc0\x07\xc0\x13\xc0\x09\xc0\x14\xc0[0m" 400 -
+2025-08-20 19:50:44,710 - ERROR - 3.134.148.59 - - [20/Aug/2025 19:50:44] code 400, message Bad request syntax ('SSH-2.0-Go')
+2025-08-20 19:50:44,710 - INFO - 3.134.148.59 - - [20/Aug/2025 19:50:44] "[31m[1mSSH-2.0-Go[0m" 400 -
+2025-08-20 19:52:24,449 - ERROR - 3.134.148.59 - - [20/Aug/2025 19:52:24] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x07\xc0\xd3¡ÀZm\xae\xe5q¨ª\xc2pY\xfe\x11\xa5\xc7\x05\xe2,\xe3\xc4U\xc1\xb2\x971\xd8\xc1\x84*\x93\x00\x00\x1a\xc0/\xc0+\xc0\x11\xc0\x07\xc0\x13\xc0')
+2025-08-20 19:52:24,450 - INFO - 3.134.148.59 - - [20/Aug/2025 19:52:24] "[31m[1m\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x07\xc0\xd3¡ÀZm\xae\xe5q¨ª\xc2pY\xfe\x11\xa5\xc7\x05\xe2,\xe3\xc4U\xc1\xb2\x971\xd8\xc1\x84*\x93\x00\x00\x1a\xc0/\xc0+\xc0\x11\xc0\x07\xc0\x13\xc0\x09\xc0\x14\xc0[0m" 400 -
+2025-08-20 20:50:52,212 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 20:50:54,343 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 20:50:59,271 - WARNING -  * Debugger is active!
+2025-08-20 20:50:59,280 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 21:56:07,866 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 21:56:10,121 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 21:56:16,898 - WARNING -  * Debugger is active!
+2025-08-20 21:56:16,909 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 22:56:09,652 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 22:56:11,825 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 22:56:16,858 - WARNING -  * Debugger is active!
+2025-08-20 22:56:16,866 - INFO -  * Debugger PIN: 100-810-759
+2025-08-20 23:56:25,495 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-20 23:56:27,571 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-20 23:56:32,439 - WARNING -  * Debugger is active!
+2025-08-20 23:56:32,455 - INFO -  * Debugger PIN: 100-810-759
+2025-08-21 00:56:26,650 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-21 00:56:28,525 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-21 00:56:34,615 - WARNING -  * Debugger is active!
+2025-08-21 00:56:34,626 - INFO -  * Debugger PIN: 100-810-759
+2025-08-21 10:51:03,005 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-21 10:51:05,031 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-21 10:51:10,778 - WARNING -  * Debugger is active!
+2025-08-21 10:51:10,792 - INFO -  * Debugger PIN: 100-810-759
+2025-08-21 11:51:12,251 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-21 11:51:13,299 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-21 11:51:19,781 - WARNING -  * Debugger is active!
+2025-08-21 11:51:19,791 - INFO -  * Debugger PIN: 100-810-759
+2025-08-21 12:11:19,028 - ERROR - 198.235.24.112 - - [21/Aug/2025 12:11:19] code 400, message Bad request version ('\xc0\x13\xc0')
+2025-08-21 12:11:19,028 - INFO - 198.235.24.112 - - [21/Aug/2025 12:11:19] "[31m[1m\x16\x03\x01\x00\xee\x01\x00\x00¨º\x03\x03="\x0d\x05\x15^m36\x06\x7ff\x03\xfd\xaa\x87\xcc\x9dt|\x94¨°\x95\x1a\x92!g\xce\x98\xb6Z\xc6 5Q\x80\xd9¨°@\x97FS\x92¡À:G\x88\xd5]\x1fivA\xb2\xa0\x91\x92\xe6\xf8\xafz,j\xb6+\x00&\xc0+\xc0/\xc0,\xc00\xcc\xa9\xcc¡§\xc0\x09\xc0\x13\xc0[0m" 400 -
+2025-08-21 12:11:19,177 - ERROR - 198.235.24.112 - - [21/Aug/2025 12:11:19] code 400, message Bad request version ('\xc0(\xc0$\xc0\x14\xc0')
+2025-08-21 12:11:19,178 - INFO - 198.235.24.112 - - [21/Aug/2025 12:11:19] "[31m[1m\x16\x03\x01\x00\xca\x01\x00\x00\xc6\x03\x03\xae¨¨M=\xcd\x84\xacIi0\xb2?\xfd*\x0de\xf4\xe3\x1d1\xf1)\xc8\xa3\x94V¨²M\xc6\xdc\x14n\x00\x00h\xcc\x14\xcc\x13\xc0/\xc0+\xc00\xc0,\xc0\x11\xc0\x07\xc0'\xc0#\xc0\x13\xc0\x09\xc0(\xc0$\xc0\x14\xc0[0m" 400 -
+2025-08-21 12:51:34,291 - INFO -  * Detected change in 'C:\\Users\\yangk\\anaconda3\\Scripts\\conda-script.py', reloading
+2025-08-21 12:51:36,199 - INFO -  * Restarting with watchdog (windowsapi)
+2025-08-21 12:51:40,578 - WARNING -  * Debugger is active!
+2025-08-21 12:51:40,589 - INFO -  * Debugger PIN: 100-810-759
+2025-08-21 13:14:54,532 - INFO -  * Detected change in 'C:\\CODE\\SparkLearn-WebUI\\submodule\\SparkLearn\\utils\\api.py', reloading
+2025-08-21 13:14:56,014 - INFO -  * Restarting with watchdog (windowsapi)
