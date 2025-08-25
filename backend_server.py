@@ -18,7 +18,7 @@ from pre_process.text_recognize.processtext import process_input
 
 app = Flask(__name__)
 CORS(app)
-
+CORS(app, resources={r"/*": {"methods": ["GET", "POST", "OPTIONS"]}})
 # 全局变量存储配置
 api_config = {
     'spark_api_key': spark_api_key,
@@ -712,6 +712,62 @@ def api_open_folder():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/getKnowledgeGraph', methods=['POST'])
+def api_get_knowledge_graph():
+    """获取知识图谱数据"""
+    try:
+        data = request.json
+        output_path = data.get('output_path', '')
+        
+        if not output_path:
+            return jsonify({'success': False, 'error': '输出路径不能为空'}), 400
+
+        graph_dir = os.path.join(output_path, "tree", "graph")
+        
+        if not os.path.exists(graph_dir):
+            return jsonify({'success': False, 'error': '知识图谱目录不存在'}), 404
+        
+        kg = KnowledgeGraph()
+        kg.load_knowledge_graph(graph_dir)
+        
+        #转换为前端需要的格式
+        nodes = []
+        links = []
+
+        # 遍历图的节点
+        for node_id in kg.graph.nodes:
+            node_data = kg.graph.nodes[node_id]
+            nodes.append({
+                'id': node_id,
+                'name': node_id,  # 或者从 node_data 中提取更友好的名称
+                'val': node_data.get('weight', 5)  # 如果节点有 weight 属性
+            })
+
+        # 遍历图的边
+        for source, target, edge_data in kg.graph.edges(data=True):
+            links.append({
+                'source': source,
+                'target': target,
+                'label': edge_data.get('type', '关系')
+            })
+        
+        graph_data = {
+            'nodes': nodes,
+            'links': links
+        }
+        
+        return jsonify({
+            'success': True, 
+            'data': graph_data,
+            'message': '知识图谱数据加载成功'
+        })
+        
+    except Exception as e:
+        import traceback
+        error_msg = f"获取知识图谱失败: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
+        return jsonify({'success': False, 'error': error_msg}), 500
+    
 if __name__ == '__main__':
     # 加载.env文件中的配置
     env_path = Path(__file__).parent / '.env'

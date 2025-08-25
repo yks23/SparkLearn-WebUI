@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useApp } from '../../stores/appStore';
 import { invoke } from '../../utils/ipc';
 
@@ -21,34 +21,52 @@ export default function KgQaPage() {
   const [removeNeighborsMode, setRemoveNeighborsMode] = useState(false);
   const [selectedNodes, setSelectedNodes] = useState([]);
   const [randomK, setRandomK] = useState(3); // 默认随机选择3个节点
-  
-  // 使用模拟数据作为默认值
-  const [graphData] = useState(() => {
-    const mockData = {
-      nodes: [
-        { id: '1', name: 'THUCS', val: 5 },
-        { id: '2', name: '清华大学', val: 7 },
-        { id: '3', name: '海淀区', val: 10 },
-        { id: '4', name: '计算机科学', val: 8 },
-        { id: '5', name: '人工智能', val: 9 },
-        { id: '6', name: '机器学习', val: 6 },
-      ],
-      links: [
-        { source: '1', target: '2', label: '属于' },
-        { source: '2', target: '3', label: '位于' },
-        { source: '1', target: '4', label: '学科' },
-        { source: '4', target: '5', label: '包含' },
-        { source: '5', target: '6', label: '包含' },
-        { source: '1', target: '5', label: '研究领域' },
-      ],
-    };
+  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [hoveredLink, setHoveredLink] = useState(null);
+  const handleLinkHover = (link, prevLink) => {
+    setHoveredLink(link);
+  };
+  const loadKnowledgeGraph = async () => {
+    if (!s.outputPath) {
+      setError('请先运行处理流程生成知识图谱');
+      return;
+    }
     
-    // 设置知识点列表
-    const concepts = mockData.nodes.map(node => node.name);
-    dispatch({ type: 'setConcepts', payload: concepts });
-    
-    return mockData;
-  });
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await invoke('getKnowledgeGraph', {
+        output_path: s.outputPath
+      });
+      
+      if (result.success) {
+        setGraphData(result.data);
+        setHasLoaded(true);
+
+        const concepts = result.data.nodes.map(node => node.name);
+        dispatch({ type: 'setConcepts', payload: concepts });
+        
+        // // 重置 Pipeline 完成状态
+        // dispatch({ type: 'setPipelineCompleted', payload: false });
+      } else {
+        setError(result.error || '加载知识图谱失败');
+      }
+    } catch (err) {
+      setError(err.message || '加载知识图谱时发生错误');
+      console.error('加载知识图谱失败:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  //自动加载知识图谱
+  useEffect(() => {
+    if (s.graphPath !='' && !hasLoaded) {
+      loadKnowledgeGraph();
+    }
+  }, [s.graphPath, hasLoaded]);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -86,58 +104,58 @@ export default function KgQaPage() {
     }));
   };
 
-  const drawDirectedLink = (link, ctx, globalScale) => {
-    const sourceRadius = Math.sqrt(link.source.val) * physicsConfig.nodeBaseSize;
-    const targetRadius = Math.sqrt(link.target.val) * physicsConfig.nodeBaseSize;
-    const dx = link.target.x - link.source.x;
-    const dy = link.target.y - link.source.y;
-    const length = Math.sqrt(dx * dx + dy * dy);
-    const ux = dx / length;
-    const uy = dy / length;
-    const startX = link.source.x + ux * sourceRadius;
-    const startY = link.source.y + uy * sourceRadius;
-    const endX = link.target.x - ux * targetRadius;
-    const endY = link.target.y - uy * targetRadius;
+  // const drawDirectedLink = (link, ctx, globalScale) => {
+  //   const sourceRadius = Math.sqrt(link.source.val) * physicsConfig.nodeBaseSize;
+  //   const targetRadius = Math.sqrt(link.target.val) * physicsConfig.nodeBaseSize;
+  //   const dx = link.target.x - link.source.x;
+  //   const dy = link.target.y - link.source.y;
+  //   const length = Math.sqrt(dx * dx + dy * dy);
+  //   const ux = dx / length;
+  //   const uy = dy / length;
+  //   const startX = link.source.x + ux * sourceRadius;
+  //   const startY = link.source.y + uy * sourceRadius;
+  //   const endX = link.target.x - ux * targetRadius;
+  //   const endY = link.target.y - uy * targetRadius;
 
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
-    ctx.strokeStyle = '#999';
-    ctx.lineWidth = physicsConfig.lineWidth / globalScale;
-    ctx.stroke();
+  //   ctx.beginPath();
+  //   ctx.moveTo(startX, startY);
+  //   ctx.lineTo(endX, endY);
+  //   ctx.strokeStyle = '#999';
+  //   ctx.lineWidth = physicsConfig.lineWidth / globalScale;
+  //   ctx.stroke();
 
-    const arrowLength = 4.1 * physicsConfig.lineWidth / globalScale;
-    const arrowWidth = 2.5 * physicsConfig.lineWidth / globalScale;
-    ctx.beginPath();
-    ctx.moveTo(endX, endY);
-    ctx.lineTo(
-      endX - arrowLength * ux - arrowWidth * uy,
-      endY - arrowLength * uy + arrowWidth * ux
-    );
-    ctx.lineTo(
-      endX - arrowLength * ux + arrowWidth * uy,
-      endY - arrowLength * uy - arrowWidth * ux
-    );
-    ctx.closePath();
-    ctx.fillStyle = '#999';
-    ctx.fill();
+  //   const arrowLength = 4.1 * physicsConfig.lineWidth / globalScale;
+  //   const arrowWidth = 2.5 * physicsConfig.lineWidth / globalScale;
+  //   ctx.beginPath();
+  //   ctx.moveTo(endX, endY);
+  //   ctx.lineTo(
+  //     endX - arrowLength * ux - arrowWidth * uy,
+  //     endY - arrowLength * uy + arrowWidth * ux
+  //   );
+  //   ctx.lineTo(
+  //     endX - arrowLength * ux + arrowWidth * uy,
+  //     endY - arrowLength * uy - arrowWidth * ux
+  //   );
+  //   ctx.closePath();
+  //   ctx.fillStyle = '#999';
+  //   ctx.fill();
 
-    const midX = (startX + endX) / 2;
-    const midY = (startY + endY) / 2;
-    const offsetPixels = 15 / globalScale;
-    const offsetX = -uy * offsetPixels;
-    const offsetY = ux * offsetPixels;
-    const labelX = midX + offsetX;
-    const labelY = midY + offsetY;
-    const label = link.label;
-    const fontSize = physicsConfig.edgefontSize / globalScale;
-    // 使用支持中文的字体
-    ctx.font = `${fontSize}px 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'SimHei', 'Arial Unicode MS', sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#333';
-    ctx.fillText(label, labelX, labelY);
-  };
+  //   const midX = (startX + endX) / 2;
+  //   const midY = (startY + endY) / 2;
+  //   const offsetPixels = 15 / globalScale;
+  //   const offsetX = -uy * offsetPixels;
+  //   const offsetY = ux * offsetPixels;
+  //   const labelX = midX + offsetX;
+  //   const labelY = midY + offsetY;
+  //   const label = link.label;
+  //   const fontSize = physicsConfig.edgefontSize / globalScale;
+  //   // 使用支持中文的字体
+  //   ctx.font = `${fontSize}px 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'SimHei', 'Arial Unicode MS', sans-serif`;
+  //   ctx.textAlign = 'center';
+  //   ctx.textBaseline = 'middle';
+  //   ctx.fillStyle = '#333';
+  //   ctx.fillText(label, labelX, labelY);
+  // };
 
   const handleNodeClick = (node) => {
     if (selectNeighborsMode) {
@@ -229,6 +247,17 @@ export default function KgQaPage() {
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-800">知识图谱预览</h2>
         <div className="flex gap-2">
+          {/* 添加重新加载按钮 */}
+          <button
+            type="button"
+            onClick={loadKnowledgeGraph}
+            disabled={loading}
+            className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md disabled:opacity-50 flex items-center"
+          >
+            <ArrowPathIcon className={`w-4 h-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? '加载中...' : '重新加载图谱'}
+          </button>
+
           <button
             type="button"
             className={`px-3 py-1 text-sm rounded-md ${
@@ -290,8 +319,20 @@ export default function KgQaPage() {
             </button>
           </div>
         </div>
+        
       </div>
-      
+      {/* 添加加载状态和错误提示 */}
+      {loading && (
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+          <p className="text-blue-700">正在加载知识图谱...</p>
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 rounded-lg">
+          <p className="text-red-700">错误: {error}</p>
+          <p className="text-sm mt-2">请确保已运行处理流程并生成了知识图谱</p>
+        </div>
+      )}
       <div className="mb-4 p-3 bg-gray-50/80 backdrop-blur-sm rounded-md border border-gray-200/50">
         <p className="text-sm text-gray-600">
           {selectNeighborsMode
@@ -358,7 +399,7 @@ export default function KgQaPage() {
             <label className="block text-sm mb-1">节点大小: {physicsConfig.nodeBaseSize}</label>
             <input 
               type="range" 
-              min="0.5" max="5" step="0.1"
+              min="0.5" max="10" step="0.1"
               value={physicsConfig.nodeBaseSize}
               onChange={e => updatePhysicsParam('nodeBaseSize', +e.target.value)}
               className="w-full"
@@ -415,7 +456,49 @@ export default function KgQaPage() {
                 node.y + radius + fontSize + 1 / globalScale
               );
             }}
-            linkCanvasObject={drawDirectedLink}
+            linkCanvasObject={(link, ctx, globalScale) => {
+                // 1. 画连线
+                ctx.beginPath();
+                ctx.moveTo(link.source.x, link.source.y);
+                ctx.lineTo(link.target.x, link.target.y);
+                ctx.strokeStyle = '#999';
+                ctx.lineWidth = physicsConfig.lineWidth / globalScale;
+                ctx.stroke();
+
+                // 2. 画箭头（可选）
+                const dx = link.target.x - link.source.x;
+                const dy = link.target.y - link.source.y;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                if (len === 0) return;
+                const ux = dx / len;
+                const uy = dy / len;
+
+                const endX = link.target.x - ux * (Math.sqrt(link.target.val) * physicsConfig.nodeBaseSize);
+                const endY = link.target.y - uy * (Math.sqrt(link.target.val) * physicsConfig.nodeBaseSize);
+
+                const arrowLen = 4.1 * physicsConfig.lineWidth / globalScale;
+                const arrowW  = 2.5 * physicsConfig.lineWidth / globalScale;
+
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(endX - arrowLen * ux - arrowW * uy, endY - arrowLen * uy + arrowW * ux);
+                ctx.lineTo(endX - arrowLen * ux + arrowW * uy, endY - arrowLen * uy - arrowW * ux);
+                ctx.closePath();
+                ctx.fillStyle = '#999';
+                ctx.fill();
+
+                // 3. 只有悬停时才画标签
+                if (link === hoveredLink && link.label) {
+                  const midX = (link.source.x + link.target.x) / 2;
+                  const midY = (link.source.y + link.target.y) / 2;
+                  const fontSize = physicsConfig.edgefontSize / globalScale;
+                  ctx.font = `${fontSize}px 'PingFang SC', 'Microsoft YaHei', sans-serif`;
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillStyle = '#333';
+                  ctx.fillText(link.label, midX, midY);
+                }
+              }}
           />
         )}
       </div>

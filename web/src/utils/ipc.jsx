@@ -34,6 +34,9 @@ export const invoke = async (cmd, arg) => {
       return openFolder(arg);
     case 'listDirectory':
       return listDirectory(arg);
+    case 'getKnowledgeGraph':
+      return getKnowledgeGraph(arg);
+
     default:
       // 对于其他命令，尝试调用后端API
       return fetch(`${BACKEND_URL}/api/${cmd}`, {
@@ -429,6 +432,32 @@ const openFolder = async (params) => {
     }
   } catch (error) {
     console.error('打开文件夹失败:', error);
+    throw error;
+  }
+};
+const getKnowledgeGraph = async (params) => {
+  try {
+    // 如果是字符串，先包装成对象；如果是对象，确保 output_path 是正斜杠
+    const payload = typeof params === 'string'
+      ? { output_path: params.replace(/\\/g, '/') }
+      : { ...params, output_path: (params.output_path || '').replace(/\\/g, '/') };
+
+    console.log('发送给后端的路径：', payload.output_path);
+
+    const response = await fetch(`${BACKEND_URL}/api/getKnowledgeGraph`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('知识图谱获取请求失败');
+    }
+  } catch (error) {
+    console.error('获取知识图谱失败:', error);
     throw error;
   }
 };

@@ -126,6 +126,13 @@ export default function PipelinePage() {
         steps: Object.keys(steps).filter(k => steps[k]),
       });
       addLog('处理完成！', 'success');
+      const path = require('path');
+      const graphPath = path.join(s.outputPath, 'tree');
+      console.log('graphPath:', graphPath);
+      dispatch({
+        type: 'setGraph',
+        payload: graphPath
+      });
     } catch (error) {
       console.error('处理失败:', error);
       addLog('处理失败: ' + error.message, 'error');
