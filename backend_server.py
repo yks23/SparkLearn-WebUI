@@ -7,6 +7,9 @@ from pathlib import Path
 import chardet
 import logging
 import traceback
+import threading
+import time
+from datetime import datetime
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +24,27 @@ from config import spark_api_key, silicon_api_key, openai_api_key, glm_api_key, 
 from qg.graph_class import KnowledgeGraph, KnowledgeQuestionGenerator
 from sider.annotator_simple import SimplifiedAnnotator
 from pre_process.text_recognize.processtext import process_input
+
+# 全局进度状态
+progress_state = {
+    'current_step': '',
+    'percentage': 0,
+    'message': '',
+    'timestamp': None
+}
+
+def update_progress(step, percentage, message=""):
+    """更新进度状态"""
+    global progress_state
+    progress_state.update({
+        'current_step': step,
+        'percentage': percentage,
+        'message': message,
+        'timestamp': datetime.now().isoformat()
+    })
+    print(f"进度更新: {step} - {percentage}% - {message}")
+
+
 
 app = Flask(__name__)
 CORS(app)
@@ -457,6 +481,9 @@ def api_run_pipeline():
                     return jsonify(error_response), 400
         
         # 执行选中的步骤
+        total_steps = len(selected_steps)
+        completed_steps = 0
+        
         for step in ['preprocess', 'augment', 'tree']:
             if step in selected_steps:
                 # 检查状态，如果已完成则询问是否继续执行
@@ -464,6 +491,9 @@ def api_run_pipeline():
                     print(f"⚠️ 步骤 {step_names[step]} 已完成，继续执行将覆盖之前的结果")
                     # 这里可以选择继续执行，因为用户已经明确选择了这个步骤
                 
+                # 更新进度
+                step_percentage = int((completed_steps / total_steps) * 100)
+                update_progress(f"🔧 {step_names[step]}...", step_percentage, f"正在执行第{completed_steps + 1}/{total_steps}个步骤")
                 print(f"⏳ 正在执行: {step_names[step]}...")
                 
                 if step == 'preprocess':
@@ -477,6 +507,11 @@ def api_run_pipeline():
                         
                         from main import process_folder
                         process_folder(input_path, output_path)
+                        
+                        # 更新进度
+                        completed_steps += 1
+                        step_percentage = int((completed_steps / total_steps) * 100)
+                        update_progress(f"✅ {step_names[step]}完成", step_percentage, f"已完成第{completed_steps}/{total_steps}个步骤")
                     finally:
                         # 恢复原始工作目录
                         os.chdir(original_cwd)
@@ -497,6 +532,11 @@ def api_run_pipeline():
                         else:
                             processed_path = input_path
                         augment_folder(processed_path)
+                        
+                        # 更新进度
+                        completed_steps += 1
+                        step_percentage = int((completed_steps / total_steps) * 100)
+                        update_progress(f"✅ {step_names[step]}完成", step_percentage, f"已完成第{completed_steps}/{total_steps}个步骤")
                     finally:
                         # 恢复原始工作目录
                         os.chdir(original_cwd)
@@ -538,6 +578,11 @@ def api_run_pipeline():
                         # 更新环境变量，确保使用处理后的md文件路径
                         os.environ['raw_path'] = processed_path
                         tree_folder(processed_path, tree_output)
+                        
+                        # 更新进度
+                        completed_steps += 1
+                        step_percentage = int((completed_steps / total_steps) * 100)
+                        update_progress(f"✅ {step_names[step]}完成", step_percentage, f"已完成第{completed_steps}/{total_steps}个步骤")
                     finally:
                         # 恢复原始工作目录
                         os.chdir(original_cwd)
@@ -983,6 +1028,13 @@ def api_get_knowledge_graph():
         error_msg = f"获取知识图谱失败: {str(e)}\n{traceback.format_exc()}"
         print(error_msg)
         return jsonify({'success': False, 'error': error_msg}), 500
+
+@app.route('/api/getProgress', methods=['GET'])
+def get_progress():
+    """获取当前进度"""
+    return jsonify(progress_state)
+
+
     
 if __name__ == '__main__':
     # 加载.env文件中的配置

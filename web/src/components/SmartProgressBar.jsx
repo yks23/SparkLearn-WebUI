@@ -44,88 +44,61 @@ export default function SmartProgressBar({
     }
   }, [inputPath, folderInfo]);
 
-  // 智能预测逻辑 - 支持文件夹
+  // 基于实际经验的简单时间估算
   const smartPrediction = useMemo(() => {
     // 如果有文件夹信息，使用文件夹信息进行预测
     if (folderInfo) {
       const { totalSize, fileCount, fileTypes } = folderInfo;
       
-      // 文件类型调整系数
-      const typeMultipliers = {
-        'pdf': 1.2, 'docx': 1.0, 'txt': 0.8, 'md': 0.7, 'html': 0.9, 'json': 0.6
-      };
-
-      // 文件大小调整系数
-      const sizeMultipliers = {
-        'small': 0.5, 'medium': 1.0, 'large': 2.0, 'huge': 4.0
-      };
-
-      // 步骤基础时间（秒）
-      const stepBaseTimes = {
-        '预处理': 30, '数据增广': 45, '知识树构建': 90, '模型训练': 120, '完成': 10
-      };
-
-      // 计算平均文件类型系数
-      const typeCounts = {};
-      fileTypes.forEach(type => {
-        typeCounts[type] = (typeCounts[type] || 0) + 1;
-      });
+      // 基于实际测试数据：
+      // - 1MB图片：8分钟
+      // - README文件（约几KB）：4分钟
+      let baseTime = 4 * 60; // 基础4分钟
       
-      let avgTypeMultiplier = 1.0;
-      if (Object.keys(typeCounts).length > 0) {
-        const totalFiles = Object.values(typeCounts).reduce((a, b) => a + b, 0);
-        avgTypeMultiplier = Object.entries(typeCounts).reduce((sum, [type, count]) => {
-          return sum + (typeMultipliers[type.toLowerCase()] || 1.0) * (count / totalFiles);
-        }, 0);
+      // 根据总大小调整
+      const sizeInMB = totalSize / (1024 * 1024);
+      if (sizeInMB > 0.1) {
+        baseTime = 4 * 60 + (sizeInMB - 0.1) * 4 * 60; // 每MB增加4分钟
       }
-
-      // 文件大小分类
-      const sizeCategory = totalSize < 1024 * 1024 ? 'small' : 
-                          totalSize < 10 * 1024 * 1024 ? 'medium' : 
-                          totalSize < 100 * 1024 * 1024 ? 'large' : 'huge';
-      const sizeMultiplier = sizeMultipliers[sizeCategory];
       
-      // 文件数量调整系数 - 使用对数函数避免过度增长
-      const fileCountMultiplier = Math.max(1, Math.log(fileCount + 1) / Math.log(2));
+      // 文件数量调整（文件越多，处理时间越长）
+      const fileCountAdjustment = Math.max(1, fileCount * 0.1); // 每个文件增加10%时间
       
-      // 文件类型多样性调整系数
-      const diversityMultiplier = Math.max(1, Math.min(1.5, fileTypes.length * 0.2));
+      // 文件类型调整
+      const hasImages = fileTypes.some(type => ['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(type.toLowerCase()));
+      const hasPDFs = fileTypes.some(type => type.toLowerCase() === 'pdf');
       
-      const baseTime = stepBaseTimes[currentStep] || 60;
+      let typeMultiplier = 1.0;
+      if (hasImages) typeMultiplier *= 1.3; // 图片处理较慢
+      if (hasPDFs) typeMultiplier *= 1.2;   // PDF处理较慢
       
-      // 最终预测时间
-      const predictedTime = Math.round(baseTime * avgTypeMultiplier * sizeMultiplier * fileCountMultiplier * diversityMultiplier);
-      
-      // 确保预测时间在合理范围内（最少30秒，最多30分钟）
-      return Math.max(30, Math.min(1800, predictedTime));
+      return Math.round(baseTime * fileCountAdjustment * typeMultiplier);
     }
 
-    // 如果没有文件夹信息，使用原来的逻辑
+    // 单个文件的情况
     if (!fileType || !fileSize) return estimatedTime;
 
-    // 文件类型调整系数
-    const typeMultipliers = {
-      'pdf': 1.2, 'docx': 1.0, 'txt': 0.8, 'md': 0.7, 'html': 0.9, 'json': 0.6
+    // 基于实际测试数据
+    const sizeInMB = fileSize / (1024 * 1024);
+    let baseTime = 4 * 60; // 基础4分钟
+    
+    // 根据文件大小调整
+    if (sizeInMB > 0.1) {
+      baseTime = 4 * 60 + (sizeInMB - 0.1) * 4 * 60; // 每MB增加4分钟
+    }
+    
+    // 根据文件类型调整
+    const typeAdjustments = {
+      'jpg': 1.3, 'jpeg': 1.3, 'png': 1.3, 'gif': 1.3, 'bmp': 1.3, // 图片
+      'pdf': 1.2, // PDF
+      'txt': 0.8, 'md': 0.7, 'json': 0.6, // 文本文件
+      'docx': 1.0, 'doc': 1.0, // Word文档
+      'html': 0.9, 'htm': 0.9 // HTML文件
     };
-
-    // 文件大小调整系数
-    const sizeMultipliers = {
-      'small': 0.5, 'medium': 1.0, 'large': 2.0, 'huge': 4.0
-    };
-
-    // 步骤基础时间
-    const stepBaseTimes = {
-      '预处理': 30, '数据增广': 45, '知识树构建': 90, '模型训练': 120, '完成': 10
-    };
-
-    const typeMultiplier = typeMultipliers[fileType.toLowerCase()] || 1.0;
-    const sizeCategory = fileSize < 1024 * 1024 ? 'small' : 
-                        fileSize < 10 * 1024 * 1024 ? 'medium' : 
-                        fileSize < 100 * 1024 * 1024 ? 'large' : 'huge';
-    const sizeMultiplier = sizeMultipliers[sizeCategory];
-    const baseTime = stepBaseTimes[currentStep] || 60;
-
-    return Math.round(baseTime * typeMultiplier * sizeMultiplier);
+    
+    const typeMultiplier = typeAdjustments[fileType.toLowerCase()] || 1.0;
+    
+    return Math.round(baseTime * typeMultiplier);
   }, [fileType, fileSize, currentStep, estimatedTime, folderInfo]);
 
   // 时间格式化
