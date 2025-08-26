@@ -1,45 +1,105 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-// 智能进度条组件 - 简洁版本
+// 智能进度条组件 - 支持文件夹输入
 export default function SmartProgressBar({
   isRunning,
   percentage,
   currentStep,
   estimatedTime,
   fileSize = 0,
-  fileType = ''
+  fileType = '',
+  inputPath = '' // 新增：输入路径
 }) {
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [folderInfo, setFolderInfo] = useState(null);
 
-  // 智能预测逻辑
+  // 获取文件夹信息
+  const getFolderInfo = async (path) => {
+    if (!path) return null;
+    
+    try {
+      const { invoke } = await import('../utils/ipc.jsx');
+      const result = await invoke('getFolderInfo', { path });
+      if (result.success) {
+        return result;
+      } else {
+        console.warn('获取文件夹信息失败:', result.error);
+        return null;
+      }
+    } catch (error) {
+      console.warn('获取文件夹信息失败:', error);
+      return null;
+    }
+  };
+
+  // 初始化文件夹信息
+  useEffect(() => {
+    if (inputPath && !folderInfo) {
+      getFolderInfo(inputPath).then(info => {
+        if (info) {
+          setFolderInfo(info);
+        }
+      });
+    }
+  }, [inputPath, folderInfo]);
+
+  // 基于实际经验的简单时间估算
   const smartPrediction = useMemo(() => {
+    // 如果有文件夹信息，使用文件夹信息进行预测
+    if (folderInfo) {
+      const { totalSize, fileCount, fileTypes } = folderInfo;
+      
+      // 基于实际测试数据：
+      // - 1MB图片：8分钟
+      // - README文件（约几KB）：4分钟
+      let baseTime = 4 * 60; // 基础4分钟
+      
+      // 根据总大小调整
+      const sizeInMB = totalSize / (1024 * 1024);
+      if (sizeInMB > 0.1) {
+        baseTime = 4 * 60 + (sizeInMB - 0.1) * 4 * 60; // 每MB增加4分钟
+      }
+      
+      // 文件数量调整（文件越多，处理时间越长）
+      const fileCountAdjustment = Math.max(1, fileCount * 0.1); // 每个文件增加10%时间
+      
+      // 文件类型调整
+      const hasImages = fileTypes.some(type => ['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(type.toLowerCase()));
+      const hasPDFs = fileTypes.some(type => type.toLowerCase() === 'pdf');
+      
+      let typeMultiplier = 1.0;
+      if (hasImages) typeMultiplier *= 1.3; // 图片处理较慢
+      if (hasPDFs) typeMultiplier *= 1.2;   // PDF处理较慢
+      
+      return Math.round(baseTime * fileCountAdjustment * typeMultiplier);
+    }
+
+    // 单个文件的情况
     if (!fileType || !fileSize) return estimatedTime;
 
-    // 文件类型调整系数
-    const typeMultipliers = {
-      'pdf': 1.2, 'docx': 1.0, 'txt': 0.8, 'md': 0.7, 'html': 0.9, 'json': 0.6
+    // 基于实际测试数据
+    const sizeInMB = fileSize / (1024 * 1024);
+    let baseTime = 4 * 60; // 基础4分钟
+    
+    // 根据文件大小调整
+    if (sizeInMB > 0.1) {
+      baseTime = 4 * 60 + (sizeInMB - 0.1) * 4 * 60; // 每MB增加4分钟
+    }
+    
+    // 根据文件类型调整
+    const typeAdjustments = {
+      'jpg': 1.3, 'jpeg': 1.3, 'png': 1.3, 'gif': 1.3, 'bmp': 1.3, // 图片
+      'pdf': 1.2, // PDF
+      'txt': 0.8, 'md': 0.7, 'json': 0.6, // 文本文件
+      'docx': 1.0, 'doc': 1.0, // Word文档
+      'html': 0.9, 'htm': 0.9 // HTML文件
     };
-
-    // 文件大小调整系数
-    const sizeMultipliers = {
-      'small': 0.5, 'medium': 1.0, 'large': 2.0, 'huge': 4.0
-    };
-
-    // 步骤基础时间
-    const stepBaseTimes = {
-      '预处理': 30, '数据增广': 45, '知识树构建': 90, '模型训练': 120, '完成': 10
-    };
-
-    const typeMultiplier = typeMultipliers[fileType.toLowerCase()] || 1.0;
-    const sizeCategory = fileSize < 1024 * 1024 ? 'small' : 
-                        fileSize < 10 * 1024 * 1024 ? 'medium' : 
-                        fileSize < 100 * 1024 * 1024 ? 'large' : 'huge';
-    const sizeMultiplier = sizeMultipliers[sizeCategory];
-    const baseTime = stepBaseTimes[currentStep] || 60;
-
-    return Math.round(baseTime * typeMultiplier * sizeMultiplier);
-  }, [fileType, fileSize, currentStep, estimatedTime]);
+    
+    const typeMultiplier = typeAdjustments[fileType.toLowerCase()] || 1.0;
+    
+    return Math.round(baseTime * typeMultiplier);
+  }, [fileType, fileSize, currentStep, estimatedTime, folderInfo]);
 
   // 时间格式化
   const formatTime = (seconds) => {
@@ -109,17 +169,35 @@ export default function SmartProgressBar({
         </div>
       </div>
 
-      {/* 文件信息 */}
-      {fileType && fileSize > 0 && (
+      {/* 文件信息 - 支持文件夹 */}
+      {folderInfo ? (
+        <div className="space-y-2 text-xs text-gray-500 border-t pt-2">
+          <div className="flex justify-between">
+            <span>📁 文件夹输入</span>
+            <span>{folderInfo.fileCount} 个文件</span>
+          </div>
+          <div className="flex justify-between">
+            <span>总大小:</span>
+            <span>{formatFileSize(folderInfo.totalSize)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>文件类型:</span>
+            <span>{folderInfo.fileTypes.slice(0, 3).join(', ')}{folderInfo.fileTypes.length > 3 ? '...' : ''}</span>
+          </div>
+        </div>
+      ) : fileType && fileSize > 0 ? (
         <div className="flex justify-between text-xs text-gray-500 border-t pt-2">
           <span>文件类型: {fileType.toUpperCase()}</span>
           <span>文件大小: {formatFileSize(fileSize)}</span>
         </div>
-      )}
+      ) : null}
 
       {/* 说明文字 */}
       <div className="text-xs text-gray-400 text-center border-t pt-2">
-        时间仅供参考，会随着使用次数增多越来越准确
+        {folderInfo ? 
+          '文件夹处理时间会根据文件数量和类型自动调整' : 
+          '时间仅供参考，会随着使用次数增多越来越准确'
+        }
       </div>
     </div>
   );

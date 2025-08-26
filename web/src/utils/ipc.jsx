@@ -36,6 +36,8 @@ export const invoke = async (cmd, arg) => {
       return listDirectory(arg);
     case 'getKnowledgeGraph':
       return getKnowledgeGraph(arg);
+    case 'getFolderInfo':
+      return getFolderInfo(arg);
 
     default:
       // 对于其他命令，尝试调用后端API
@@ -461,6 +463,31 @@ const getKnowledgeGraph = async (params) => {
     }
   } catch (error) {
     console.error('获取知识图谱失败:', error);
+    throw error;
+  }
+};
+
+// 获取文件夹信息
+const getFolderInfo = async (params) => {
+  try {
+    const payload = typeof params === 'string'
+      ? { path: params.replace(/\\/g, '/') }
+      : { ...params, path: (params.path || '').replace(/\\/g, '/') };
+
+    const response = await fetch(`${BACKEND_URL}/api/getFolderInfo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      return result;
+    } else {
+      throw new Error('文件夹信息获取失败');
+    }
+  } catch (error) {
+    console.error('获取文件夹信息失败:', error);
     throw error;
   }
 };

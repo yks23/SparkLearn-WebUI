@@ -71,6 +71,16 @@ export default function PipelinePage() {
         '减少并发请求数量'
       ]
     },
+    'balance_error': {
+      title: 'API余额不足',
+      description: '您的API账户余额不足，无法继续使用付费模型服务',
+      solutions: [
+        '前往API服务商官网充值',
+        '检查当前账户余额',
+        '考虑使用免费模型',
+        '联系API服务商客服'
+      ]
+    },
     'network_error': {
       title: '网络连接错误',
       description: '无法连接到API服务器',
@@ -287,45 +297,24 @@ export default function PipelinePage() {
     addLog('开始处理...', 'info');
     
     try {
-      // 智能进度更新 - 基于实际步骤
-      let startTime = Date.now();
-      const selectedSteps = Object.keys(steps).filter(k => steps[k]);
-      const totalSteps = selectedSteps.length;
-      let currentStepIndex = 0;
-      
-      const progressInterval = setInterval(() => {
-        const currentProgress = s.progress.percentage;
-        if (currentProgress < 90) {
-          // 基于时间的平滑进度增长
-          const timeElapsed = (Date.now() - startTime) / 1000; // 秒
-          const estimatedTotalTime = totalSteps * 120; // 每个步骤预估2分钟
-          const newProgress = Math.min(90, (timeElapsed / estimatedTotalTime) * 100);
-          
-          // 确保进度只增不减
-          const finalProgress = Math.max(currentProgress, newProgress);
-          
-          // 根据进度确定当前步骤
-          const stepProgress = finalProgress / totalSteps;
-          currentStepIndex = Math.min(Math.floor(stepProgress), totalSteps - 1);
-          
-          const stepNames = {
-            'preprocess': '🔧 预处理文件...',
-            'augment': '🧠 文本增广...', 
-            'tree': '🌳 构建知识树...'
-          };
-          
-          const currentStep = stepNames[selectedSteps[currentStepIndex]] || '处理中...';
-          
-          // 更合理的预计时间计算
-          const remainingTime = Math.max(1, Math.round((estimatedTotalTime - timeElapsed) / 60));
-          
-          dispatch({ type: 'setProgress', payload: { 
-            percentage: finalProgress, 
-            currentStep,
-            estimatedTime: `${remainingTime}分钟`
-          }});
+      // 实时获取后端进度更新
+      const progressInterval = setInterval(async () => {
+        try {
+          const response = await fetch('http://localhost:5001/api/getProgress');
+          if (response.ok) {
+            const progress = await response.json();
+            if (progress.current_step) {
+              dispatch({ type: 'setProgress', payload: { 
+                percentage: progress.percentage, 
+                currentStep: progress.current_step,
+                estimatedTime: progress.message || ''
+              }});
+            }
+          }
+        } catch (error) {
+          console.warn('获取进度失败:', error);
         }
-      }, 2000);
+      }, 1000);
 
       // 启动后端处理
       const pipelinePromise = invoke('runPipeline', {
@@ -527,6 +516,7 @@ export default function PipelinePage() {
             estimatedTime={s.progress.estimatedTime}
             fileSize={s.inputPath ? getFileSize(s.inputPath) : 0}
             fileType={s.inputPath ? getFileType(s.inputPath) : ''}
+            inputPath={s.inputPath}
           />
         )}
 

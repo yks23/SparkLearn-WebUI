@@ -7,6 +7,9 @@ from pathlib import Path
 import chardet
 import logging
 import traceback
+import threading
+import time
+from datetime import datetime
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +24,27 @@ from config import spark_api_key, silicon_api_key, openai_api_key, glm_api_key, 
 from qg.graph_class import KnowledgeGraph, KnowledgeQuestionGenerator
 from sider.annotator_simple import SimplifiedAnnotator
 from pre_process.text_recognize.processtext import process_input
+
+# 全局进度状态
+progress_state = {
+    'current_step': '',
+    'percentage': 0,
+    'message': '',
+    'timestamp': None
+}
+
+def update_progress(step, percentage, message=""):
+    """更新进度状态"""
+    global progress_state
+    progress_state.update({
+        'current_step': step,
+        'percentage': percentage,
+        'message': message,
+        'timestamp': datetime.now().isoformat()
+    })
+    print(f"进度更新: {step} - {percentage}% - {message}")
+
+
 
 app = Flask(__name__)
 CORS(app)
@@ -74,6 +98,21 @@ def handle_api_error(error, context=""):
                 '检查API使用配额',
                 '考虑升级API计划',
                 '减少并发请求数量'
+            ]
+        }
+    
+    # 检查是否是余额不足错误
+    elif "30011" in error_str or "paid balance" in error_str.lower() or "insufficient" in error_str.lower():
+        return {
+            'success': False,
+            'error': 'API余额不足：请充值后重试',
+            'error_type': 'balance_error',
+            'details': '您的API账户余额不足，无法继续使用付费模型服务',
+            'solutions': [
+                '前往API服务商官网充值',
+                '检查当前账户余额',
+                '考虑使用免费模型',
+                '联系API服务商客服'
             ]
         }
     
@@ -442,6 +481,9 @@ def api_run_pipeline():
                     return jsonify(error_response), 400
         
         # 执行选中的步骤
+        total_steps = len(selected_steps)
+        completed_steps = 0
+        
         for step in ['preprocess', 'augment', 'tree']:
             if step in selected_steps:
                 # 检查状态，如果已完成则询问是否继续执行
@@ -449,50 +491,101 @@ def api_run_pipeline():
                     print(f"⚠️ 步骤 {step_names[step]} 已完成，继续执行将覆盖之前的结果")
                     # 这里可以选择继续执行，因为用户已经明确选择了这个步骤
                 
+                # 更新进度
+                step_percentage = int((completed_steps / total_steps) * 100)
+                update_progress(f"🔧 {step_names[step]}...", step_percentage, f"正在执行第{completed_steps + 1}/{total_steps}个步骤")
                 print(f"⏳ 正在执行: {step_names[step]}...")
                 
                 if step == 'preprocess':
-                    from main import process_folder
-                    process_folder(input_path, output_path)
+                    # 保存当前工作目录
+                    original_cwd = os.getcwd()
+                    
+                    try:
+                        # 切换到SparkLearn目录
+                        sparklearn_dir = os.path.join(os.path.dirname(__file__), 'submodule', 'SparkLearn')
+                        os.chdir(sparklearn_dir)
+                        
+                        from main import process_folder
+                        process_folder(input_path, output_path)
+                        
+                        # 更新进度
+                        completed_steps += 1
+                        step_percentage = int((completed_steps / total_steps) * 100)
+                        update_progress(f"✅ {step_names[step]}完成", step_percentage, f"已完成第{completed_steps}/{total_steps}个步骤")
+                    finally:
+                        # 恢复原始工作目录
+                        os.chdir(original_cwd)
                 
                 elif step == 'augment': # 隐患：如果选择的输出文件夹不是空的，可能会出现问题
-                    from main import augment_folder
-                    # 如果跳过了预处理，直接使用输入路径
-                    if 'preprocess' in selected_steps:
-                        processed_path = output_path
-                    else:
-                        processed_path = input_path
-                    augment_folder(processed_path)
+                    # 保存当前工作目录
+                    original_cwd = os.getcwd()
+                    
+                    try:
+                        # 切换到SparkLearn目录
+                        sparklearn_dir = os.path.join(os.path.dirname(__file__), 'submodule', 'SparkLearn')
+                        os.chdir(sparklearn_dir)
+                        
+                        from main import augment_folder
+                        # 如果跳过了预处理，直接使用输入路径
+                        if 'preprocess' in selected_steps:
+                            processed_path = output_path
+                        else:
+                            processed_path = input_path
+                        augment_folder(processed_path)
+                        
+                        # 更新进度
+                        completed_steps += 1
+                        step_percentage = int((completed_steps / total_steps) * 100)
+                        update_progress(f"✅ {step_names[step]}完成", step_percentage, f"已完成第{completed_steps}/{total_steps}个步骤")
+                    finally:
+                        # 恢复原始工作目录
+                        os.chdir(original_cwd)
                 
                 elif step == 'tree':
-                    from main import tree_folder
-                    # 如果跳过了预处理，直接使用输入路径
-                    if 'preprocess' in selected_steps:
-                        processed_path = output_path
-                    else:
-                        processed_path = input_path
-                        # 额外检查：确保tree步骤的输入只包含.md文件
-                        if os.path.isdir(processed_path):
-                            has_md_files = False
-                            for root, dirs, files in os.walk(processed_path):
-                                for file in files:
-                                    if file.lower().endswith('.md'):
-                                        has_md_files = True
+                    # 保存当前工作目录
+                    original_cwd = os.getcwd()
+                    
+                    try:
+                        # 切换到SparkLearn目录
+                        sparklearn_dir = os.path.join(os.path.dirname(__file__), 'submodule', 'SparkLearn')
+                        os.chdir(sparklearn_dir)
+                        
+                        from main import tree_folder
+                        # 如果跳过了预处理，直接使用输入路径
+                        if 'preprocess' in selected_steps:
+                            processed_path = output_path
+                        else:
+                            processed_path = input_path
+                            # 额外检查：确保tree步骤的输入只包含.md文件
+                            if os.path.isdir(processed_path):
+                                has_md_files = False
+                                for root, dirs, files in os.walk(processed_path):
+                                    for file in files:
+                                        if file.lower().endswith('.md'):
+                                            has_md_files = True
+                                            break
+                                    if has_md_files:
                                         break
-                                if has_md_files:
-                                    break
-                            if not has_md_files:
-                                error_response = handle_api_error(Exception('tree步骤需要.md文件作为输入，请先运行预处理步骤'), "验证文件类型")
-                                error_response['error'] = 'tree步骤需要.md文件作为输入，请先运行预处理步骤'
-                                return jsonify(error_response), 400
-                    
-                    tree_output = os.path.join(output_path, "tree")
-                    # 确保tree_output目录存在
-                    os.makedirs(tree_output, exist_ok=True)
-                    
-                    # 更新环境变量，确保使用处理后的md文件路径
-                    os.environ['raw_path'] = processed_path
-                    tree_folder(processed_path, tree_output)
+                                if not has_md_files:
+                                    error_response = handle_api_error(Exception('tree步骤需要.md文件作为输入，请先运行预处理步骤'), "验证文件类型")
+                                    error_response['error'] = 'tree步骤需要.md文件作为输入，请先运行预处理步骤'
+                                    return jsonify(error_response), 400
+                        
+                        tree_output = os.path.join(output_path, "tree")
+                        # 确保tree_output目录存在
+                        os.makedirs(tree_output, exist_ok=True)
+                        
+                        # 更新环境变量，确保使用处理后的md文件路径
+                        os.environ['raw_path'] = processed_path
+                        tree_folder(processed_path, tree_output)
+                        
+                        # 更新进度
+                        completed_steps += 1
+                        step_percentage = int((completed_steps / total_steps) * 100)
+                        update_progress(f"✅ {step_names[step]}完成", step_percentage, f"已完成第{completed_steps}/{total_steps}个步骤")
+                    finally:
+                        # 恢复原始工作目录
+                        os.chdir(original_cwd)
                     
                     # 生成知识图谱可视化
                     graph_dir = os.path.join(tree_output, "graph")
@@ -796,6 +889,57 @@ def api_list_directory():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/getFolderInfo', methods=['POST'])
+def api_get_folder_info():
+    """获取文件夹信息"""
+    try:
+        data = request.json
+        folder_path = data.get('path', '')
+        
+        if not folder_path:
+            return jsonify({'success': False, 'error': '文件夹路径不能为空'}), 400
+        
+        if not os.path.exists(folder_path):
+            return jsonify({'success': False, 'error': '文件夹不存在'}), 400
+        
+        if not os.path.isdir(folder_path):
+            return jsonify({'success': False, 'error': '路径不是文件夹'}), 400
+        
+        total_size = 0
+        file_count = 0
+        file_types = set()
+        
+        # 遍历文件夹中的所有文件
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                try:
+                    # 获取文件大小
+                    file_size = os.path.getsize(file_path)
+                    total_size += file_size
+                    file_count += 1
+                    
+                    # 获取文件类型
+                    file_ext = os.path.splitext(file)[1].lower()
+                    if file_ext:
+                        file_types.add(file_ext[1:])  # 去掉点号
+                    else:
+                        file_types.add('unknown')
+                except (OSError, IOError):
+                    # 跳过无法访问的文件
+                    continue
+        
+        return jsonify({
+            'success': True,
+            'totalSize': total_size,
+            'fileCount': file_count,
+            'fileTypes': list(file_types)
+        })
+        
+    except Exception as e:
+        logger.error(f"获取文件夹信息失败: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/openFolder', methods=['POST'])
 def api_open_folder():
     """打开文件夹"""
@@ -884,6 +1028,13 @@ def api_get_knowledge_graph():
         error_msg = f"获取知识图谱失败: {str(e)}\n{traceback.format_exc()}"
         print(error_msg)
         return jsonify({'success': False, 'error': error_msg}), 500
+
+@app.route('/api/getProgress', methods=['GET'])
+def get_progress():
+    """获取当前进度"""
+    return jsonify(progress_state)
+
+
     
 if __name__ == '__main__':
     # 加载.env文件中的配置
