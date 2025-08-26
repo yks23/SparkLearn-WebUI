@@ -527,6 +527,7 @@ export default function PipelinePage() {
             estimatedTime={s.progress.estimatedTime}
             fileSize={s.inputPath ? getFileSize(s.inputPath) : 0}
             fileType={s.inputPath ? getFileType(s.inputPath) : ''}
+            inputPath={s.inputPath}
           />
         )}
 

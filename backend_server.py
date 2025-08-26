@@ -796,6 +796,57 @@ def api_list_directory():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/getFolderInfo', methods=['POST'])
+def api_get_folder_info():
+    """获取文件夹信息"""
+    try:
+        data = request.json
+        folder_path = data.get('path', '')
+        
+        if not folder_path:
+            return jsonify({'success': False, 'error': '文件夹路径不能为空'}), 400
+        
+        if not os.path.exists(folder_path):
+            return jsonify({'success': False, 'error': '文件夹不存在'}), 400
+        
+        if not os.path.isdir(folder_path):
+            return jsonify({'success': False, 'error': '路径不是文件夹'}), 400
+        
+        total_size = 0
+        file_count = 0
+        file_types = set()
+        
+        # 遍历文件夹中的所有文件
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                try:
+                    # 获取文件大小
+                    file_size = os.path.getsize(file_path)
+                    total_size += file_size
+                    file_count += 1
+                    
+                    # 获取文件类型
+                    file_ext = os.path.splitext(file)[1].lower()
+                    if file_ext:
+                        file_types.add(file_ext[1:])  # 去掉点号
+                    else:
+                        file_types.add('unknown')
+                except (OSError, IOError):
+                    # 跳过无法访问的文件
+                    continue
+        
+        return jsonify({
+            'success': True,
+            'totalSize': total_size,
+            'fileCount': file_count,
+            'fileTypes': list(file_types)
+        })
+        
+    except Exception as e:
+        logger.error(f"获取文件夹信息失败: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/openFolder', methods=['POST'])
 def api_open_folder():
     """打开文件夹"""
