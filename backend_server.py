@@ -981,6 +981,7 @@ def api_get_knowledge_graph():
         output_path = data.get('output_path', '')
         
         if not output_path:
+            # print(graph_dir)
             return jsonify({'success': False, 'error': '输出路径不能为空'}), 400
 
         graph_dir = os.path.join(output_path, "tree", "graph")
@@ -1047,8 +1048,8 @@ if __name__ == '__main__':
                     api_config[key] = value
                     os.environ[key] = value
     
-    print("🚀 启动SparkLearn后端服务器...")
-    print(f"📁 Submodule路径: {submodule_path}")
-    print(f"🔧 当前API配置: {api_config}")
+    print("启动SparkLearn后端服务器...")
+    print(f"Submodule路径: {submodule_path}")
+    print(f"当前API配置: {api_config}")
     
     app.run(host='0.0.0.0', port=5001, debug=True)

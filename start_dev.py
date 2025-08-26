@@ -346,7 +346,12 @@ def check_node_dependencies():
     # 检查Node.js是否安装
     try:
         node_result = subprocess.run(["node", "--version"], capture_output=True, text=True, check=True)
-        npm_result = subprocess.run(["npm", "--version"], capture_output=True, text=True, check=True)
+        system = platform.system()
+        if system == "Windows":
+            npm_bin = "npm.cmd"
+        else:
+            npm_bin = "npm"
+        npm_result = subprocess.run([npm_bin, "--version"], capture_output=True, text=True, check=True)
         print(f"✅ Node.js版本: {node_result.stdout.strip()}")
         print(f"✅ npm版本: {npm_result.stdout.strip()}")
         node_installed = True
@@ -563,12 +568,13 @@ def start_backend():
         return None
     
     try:
-        backend_process = subprocess.Popen([
-            sys.executable, "backend_server.py"
-        ], cwd=Path(__file__).parent, 
-           stdout=subprocess.PIPE,
-           stderr=subprocess.PIPE,
-           text=True)
+        with open("backend.log", "w", buffering=1) as log_file:
+            backend_process = subprocess.Popen([
+                sys.executable, "backend_server.py"
+            ], cwd=Path(__file__).parent,
+            stdout=log_file,
+            stderr=log_file,
+            text=True)
         
         # 等待后端启动
         print("⏳ 等待后端服务器启动...")

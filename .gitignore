@@ -3,3 +3,4 @@ notes/
 .DS_Store
 venv
 outputs/
+*.log
