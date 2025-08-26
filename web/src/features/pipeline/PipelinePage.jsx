@@ -71,6 +71,16 @@ export default function PipelinePage() {
         '减少并发请求数量'
       ]
     },
+    'balance_error': {
+      title: 'API余额不足',
+      description: '您的API账户余额不足，无法继续使用付费模型服务',
+      solutions: [
+        '前往API服务商官网充值',
+        '检查当前账户余额',
+        '考虑使用免费模型',
+        '联系API服务商客服'
+      ]
+    },
     'network_error': {
       title: '网络连接错误',
       description: '无法连接到API服务器',

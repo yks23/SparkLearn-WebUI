@@ -77,6 +77,21 @@ def handle_api_error(error, context=""):
             ]
         }
     
+    # 检查是否是余额不足错误
+    elif "30011" in error_str or "paid balance" in error_str.lower() or "insufficient" in error_str.lower():
+        return {
+            'success': False,
+            'error': 'API余额不足：请充值后重试',
+            'error_type': 'balance_error',
+            'details': '您的API账户余额不足，无法继续使用付费模型服务',
+            'solutions': [
+                '前往API服务商官网充值',
+                '检查当前账户余额',
+                '考虑使用免费模型',
+                '联系API服务商客服'
+            ]
+        }
+    
     # 检查是否是网络错误
     elif "connection" in error_str.lower() or "timeout" in error_str.lower():
         return {
@@ -452,47 +467,80 @@ def api_run_pipeline():
                 print(f"⏳ 正在执行: {step_names[step]}...")
                 
                 if step == 'preprocess':
-                    from main import process_folder
-                    process_folder(input_path, output_path)
+                    # 保存当前工作目录
+                    original_cwd = os.getcwd()
+                    
+                    try:
+                        # 切换到SparkLearn目录
+                        sparklearn_dir = os.path.join(os.path.dirname(__file__), 'submodule', 'SparkLearn')
+                        os.chdir(sparklearn_dir)
+                        
+                        from main import process_folder
+                        process_folder(input_path, output_path)
+                    finally:
+                        # 恢复原始工作目录
+                        os.chdir(original_cwd)
                 
                 elif step == 'augment': # 隐患：如果选择的输出文件夹不是空的，可能会出现问题
-                    from main import augment_folder
-                    # 如果跳过了预处理，直接使用输入路径
-                    if 'preprocess' in selected_steps:
-                        processed_path = output_path
-                    else:
-                        processed_path = input_path
-                    augment_folder(processed_path)
+                    # 保存当前工作目录
+                    original_cwd = os.getcwd()
+                    
+                    try:
+                        # 切换到SparkLearn目录
+                        sparklearn_dir = os.path.join(os.path.dirname(__file__), 'submodule', 'SparkLearn')
+                        os.chdir(sparklearn_dir)
+                        
+                        from main import augment_folder
+                        # 如果跳过了预处理，直接使用输入路径
+                        if 'preprocess' in selected_steps:
+                            processed_path = output_path
+                        else:
+                            processed_path = input_path
+                        augment_folder(processed_path)
+                    finally:
+                        # 恢复原始工作目录
+                        os.chdir(original_cwd)
                 
                 elif step == 'tree':
-                    from main import tree_folder
-                    # 如果跳过了预处理，直接使用输入路径
-                    if 'preprocess' in selected_steps:
-                        processed_path = output_path
-                    else:
-                        processed_path = input_path
-                        # 额外检查：确保tree步骤的输入只包含.md文件
-                        if os.path.isdir(processed_path):
-                            has_md_files = False
-                            for root, dirs, files in os.walk(processed_path):
-                                for file in files:
-                                    if file.lower().endswith('.md'):
-                                        has_md_files = True
+                    # 保存当前工作目录
+                    original_cwd = os.getcwd()
+                    
+                    try:
+                        # 切换到SparkLearn目录
+                        sparklearn_dir = os.path.join(os.path.dirname(__file__), 'submodule', 'SparkLearn')
+                        os.chdir(sparklearn_dir)
+                        
+                        from main import tree_folder
+                        # 如果跳过了预处理，直接使用输入路径
+                        if 'preprocess' in selected_steps:
+                            processed_path = output_path
+                        else:
+                            processed_path = input_path
+                            # 额外检查：确保tree步骤的输入只包含.md文件
+                            if os.path.isdir(processed_path):
+                                has_md_files = False
+                                for root, dirs, files in os.walk(processed_path):
+                                    for file in files:
+                                        if file.lower().endswith('.md'):
+                                            has_md_files = True
+                                            break
+                                    if has_md_files:
                                         break
-                                if has_md_files:
-                                    break
-                            if not has_md_files:
-                                error_response = handle_api_error(Exception('tree步骤需要.md文件作为输入，请先运行预处理步骤'), "验证文件类型")
-                                error_response['error'] = 'tree步骤需要.md文件作为输入，请先运行预处理步骤'
-                                return jsonify(error_response), 400
-                    
-                    tree_output = os.path.join(output_path, "tree")
-                    # 确保tree_output目录存在
-                    os.makedirs(tree_output, exist_ok=True)
-                    
-                    # 更新环境变量，确保使用处理后的md文件路径
-                    os.environ['raw_path'] = processed_path
-                    tree_folder(processed_path, tree_output)
+                                if not has_md_files:
+                                    error_response = handle_api_error(Exception('tree步骤需要.md文件作为输入，请先运行预处理步骤'), "验证文件类型")
+                                    error_response['error'] = 'tree步骤需要.md文件作为输入，请先运行预处理步骤'
+                                    return jsonify(error_response), 400
+                        
+                        tree_output = os.path.join(output_path, "tree")
+                        # 确保tree_output目录存在
+                        os.makedirs(tree_output, exist_ok=True)
+                        
+                        # 更新环境变量，确保使用处理后的md文件路径
+                        os.environ['raw_path'] = processed_path
+                        tree_folder(processed_path, tree_output)
+                    finally:
+                        # 恢复原始工作目录
+                        os.chdir(original_cwd)
                     
                     # 生成知识图谱可视化
                     graph_dir = os.path.join(tree_output, "graph")
