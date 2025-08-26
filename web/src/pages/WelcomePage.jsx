@@ -1,5 +1,6 @@
 import './WelcomePage.css';            // 你可以把 App.css 中的样式搬到这里
-import { useState } from 'react';    
+import { useState } from 'react';
+import { Link } from 'react-router-dom';    
 export default function WelcomePage({ onEnter }) {
   // 添加模态框状态管理
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,9 +24,12 @@ export default function WelcomePage({ onEnter }) {
               </div>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center">
-              <div className="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">
+              <Link 
+                to="/contact" 
+                className="ml-4 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition-colors"
+              >
                 联系我们
-              </div>
+              </Link>
             </div>
           </div>
         </div>
