@@ -298,7 +298,8 @@ export default function PipelinePage() {
     
     try {
       // 实时获取后端进度更新
-      const progressInterval = setInterval(async () => {
+      let progressInterval;
+      progressInterval = setInterval(async () => {
         try {
           const response = await fetch('http://localhost:5001/api/getProgress');
           if (response.ok) {
@@ -309,12 +310,22 @@ export default function PipelinePage() {
                 currentStep: progress.current_step,
                 estimatedTime: progress.message || ''
               }});
+              
+              // 检查是否失败或完成
+              if (progress.current_step.includes('❌') || progress.current_step.includes('失败') || 
+                  progress.current_step.includes('✅ 全部流程完成')) {
+                clearInterval(progressInterval);
+                if (progress.current_step.includes('❌') || progress.current_step.includes('失败')) {
+                  throw new Error(progress.current_step);
+                }
+              }
             }
           }
         } catch (error) {
           console.warn('获取进度失败:', error);
+          clearInterval(progressInterval);
         }
-      }, 1000);
+      }, 3000); // 改为3秒间隔，减少日志噪音
 
       // 启动后端处理
       const pipelinePromise = invoke('runPipeline', {

@@ -49,6 +49,18 @@ def update_progress(step, percentage, message=""):
 app = Flask(__name__)
 CORS(app)
 CORS(app, resources={r"/*": {"methods": ["GET", "POST", "OPTIONS"]}})
+
+# 配置Flask日志，过滤掉进度请求
+class ProgressFilter(logging.Filter):
+    def filter(self, record):
+        # 过滤掉进度请求的日志
+        if hasattr(record, 'msg') and '/api/getProgress' in str(record.msg):
+            return False
+        return True
+
+# 应用过滤器到werkzeug日志
+werkzeug_logger = logging.getLogger('werkzeug')
+werkzeug_logger.addFilter(ProgressFilter())
 # 全局变量存储配置
 api_config = {
     'spark_api_key': spark_api_key,
@@ -604,11 +616,15 @@ def api_run_pipeline():
                 print(f"✅ 完成: {step_names[step]}")
         
         print("🎉 全部流程完成！")
+        # 更新最终进度状态
+        update_progress("✅ 全部流程完成", 100, "处理完成")
         return jsonify({'success': True, 'message': '流程执行完成'})
         
     except Exception as e:
         logger.error(f"运行流程失败: {str(e)}")
         logger.error(traceback.format_exc())
+        # 更新错误状态
+        update_progress("❌ 流程执行失败", 0, f"错误: {str(e)}")
         error_response = handle_api_error(e, "运行流程")
         return jsonify(error_response), 500
 
@@ -1033,6 +1049,7 @@ def api_get_knowledge_graph():
 @app.route('/api/getProgress', methods=['GET'])
 def get_progress():
     """获取当前进度"""
+    # 静默处理进度请求，不输出日志
     return jsonify(progress_state)
 
 
